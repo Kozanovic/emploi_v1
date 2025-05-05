@@ -3,6 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Seance;
+use App\Models\Semaine;
+use App\Models\Salle;
+use App\Models\Module;
+use App\Models\Formateur;
+use App\Models\Groupe;
 use Illuminate\Http\Request;
 
 class SeanceController extends Controller
@@ -10,8 +15,18 @@ class SeanceController extends Controller
     public function index()
     {
         $seances = Seance::with(['semaine', 'salle', 'module', 'formateur', 'groupe'])->get();
+        $semaines = Semaine::all();
+        $salles = Salle::all();
+        $modules = Module::all();
+        $formateurs = Formateur::all();
+        $groupes = Groupe::all();
         return response()->json([
             'data' => $seances,
+            'semaines' => $semaines,
+            'salles' => $salles,
+            'modules' => $modules,
+            'formateurs' => $formateurs,
+            'groupes' => $groupes,
             'message' => 'Liste des séances récupérée avec succès.'
         ], 200);
     }

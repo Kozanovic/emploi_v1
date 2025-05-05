@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Filiere;
 use App\Models\Module;
 use Illuminate\Http\Request;
 
@@ -10,8 +11,10 @@ class ModuleController extends Controller
     public function index()
     {
         $modules = Module::with(['filiere'])->get();
+        $filieres = Filiere::all();
         return response()->json([
             'data' => $modules,
+            'filieres' => $filieres,
             'message' => 'Liste des modules récupérée avec succès.'
         ]);
     }

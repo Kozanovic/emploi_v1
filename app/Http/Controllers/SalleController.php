@@ -3,15 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Salle;
+use App\Models\Etablissement;
 use Illuminate\Http\Request;
 
 class SalleController extends Controller
 {
     public function index()
     {
+
         $salles = Salle::with(['etablissement'])->get();
+        $etablissements = Etablissement::all();
         return response()->json([
             'data' => $salles,
+            'etablissements' => $etablissements,
             'message' => 'Liste des salles récupérée avec succès.'
         ], 200);
     }

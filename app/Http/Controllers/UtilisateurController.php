@@ -15,9 +15,14 @@ class UtilisateurController extends Controller
     public function index()
     {
         $utilisateurs = Utilisateur::all();
+        $roles = [
+            'Directeur',
+            'Formateur',
+        ];
         return response()->json([
             'message' => 'Liste des utilisateurs récupérée avec succès.',
-            'data' => $utilisateurs
+            'data' => $utilisateurs,
+            'roles' => $roles
         ]);
     }
 

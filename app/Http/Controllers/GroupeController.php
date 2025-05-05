@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Filiere;
 use App\Models\Groupe;
+use App\Models\Etablissement;
 use Illuminate\Http\Request;
 
 class GroupeController extends Controller
@@ -10,8 +12,12 @@ class GroupeController extends Controller
     public function index()
     {
         $groupes = Groupe::with(['filiere', 'etablissement'])->get();
+        $filieres = Filiere::all();
+        $etablissements = Etablissement::all();
         return response()->json([
             'data' => $groupes,
+            'filieres' => $filieres,
+            'etablissements' => $etablissements,
             'message' => 'Liste des groupes récupérée avec succès.'
         ]);
     }

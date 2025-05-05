@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ferie;
+use App\Models\Semaine;
 use App\Models\SemFer;
 use Illuminate\Http\Request;
 
@@ -10,10 +12,13 @@ class SemFerController extends Controller
     public function index()
     {
         $semFers = SemFer::with(['ferie', 'semaine'])->get();
-
+        $semaines = Semaine::all();
+        $feries = Ferie ::all();
         return response()->json([
+            'data' => $semFers,
+            'semaines' => $semaines,
+            'feries' => $feries,
             'message' => 'Liste des jours fériés associés aux semaines récupérée avec succès',
-            'data' => $semFers
         ]);
     }
 

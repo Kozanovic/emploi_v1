@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AnneeScolaire;
 use App\Models\Semaine;
 use Illuminate\Http\Request;
 
@@ -10,8 +11,10 @@ class SemaineController extends Controller
     public function index()
     {
         $semaines = Semaine::with(['anneeScolaire'])->get();
+        $anneeScolaires = AnneeScolaire::all();
         return response()->json([
             'data' => $semaines,
+            'anneeScolaires' => $anneeScolaires,
             'message' => 'Liste des semaines récupérée avec succès.'
         ], 200);
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Formateur;
+use App\Models\Utilisateur;
 use Illuminate\Http\Request;
 
 class FormateurController extends Controller
@@ -12,8 +13,17 @@ class FormateurController extends Controller
      */
     public function index()
     {
+        $utilisateurs = Utilisateur::where('role', 'Formateur')->get();
+        $etablissements = Formateur::with('etablissement')->get();
+        $complexes = Formateur::with('complexe')->get();
+        $directions = Formateur::with('direction_regional')->get();
         return response()->json([
-            'data' => Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])->get()
+            'data' => Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])->get(),
+            'utilisateurs' => $utilisateurs,
+            'etablissements' => $etablissements,
+            'complexes' => $complexes,
+            'directions' => $directions,
+            'message' => 'Liste des formateurs récupérée avec succès'
         ]);
     }
 

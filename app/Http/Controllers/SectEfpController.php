@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\SectEfp;
+use App\Models\Secteur;
+use App\Models\Etablissement;
 use Illuminate\Http\Request;
 
 class SectEfpController extends Controller
@@ -10,9 +12,13 @@ class SectEfpController extends Controller
     public function index()
     {
         $sectEfps = SectEfp::with(['secteur', 'etablissement'])->get();
+        $secteurs = Secteur::all();
+        $etablissements = Etablissement::all();
         return response()->json([
+            'data' => $sectEfps,
+            'secteurs' => $secteurs,
+            'etablissements' => $etablissements,
             'message' => 'Liste des associations secteur/établissement récupérée avec succès',
-            'data' => $sectEfps
         ]);
     }
 

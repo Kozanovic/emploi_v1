@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Directeur;
+use App\Models\Utilisateur;
 use Illuminate\Http\Request;
 
 class DirecteurController extends Controller
@@ -12,8 +13,10 @@ class DirecteurController extends Controller
      */
     public function index()
     {
+        $utilisateurs = Utilisateur::all();
         return response()->json([
-            'data' => Directeur::with('utilisateur')->get()
+            'data' => Directeur::with('utilisateur')->get(),
+            'utilisateurs' => $utilisateurs,
         ]);
     }
 

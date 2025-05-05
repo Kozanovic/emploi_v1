@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Complexe;
+use App\Models\DirectionRegional;
 use Illuminate\Http\Request;
 
 class ComplexeController extends Controller
@@ -12,10 +13,12 @@ class ComplexeController extends Controller
      */
     public function index()
     {
+        $directionRegionals = DirectionRegional::all();
         $complexes = Complexe::with('directionRegional')->get();
         return response()->json([
             'message' => 'Liste des complexes récupérée avec succès.',
-            'data' => $complexes
+            'data' => $complexes,
+            'directionRegionals' => $directionRegionals
         ]);
     }
 

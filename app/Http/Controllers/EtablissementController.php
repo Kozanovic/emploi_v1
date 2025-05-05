@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Etablissement;
+use App\Models\Utilisateur;
 use Illuminate\Http\Request;
 
 class EtablissementController extends Controller
@@ -12,8 +13,11 @@ class EtablissementController extends Controller
      */
     public function index()
     {
+        $directeurs = Utilisateur::where('role', 'Directeur')->get();
         return response()->json([
-            'data' => Etablissement::with(['directeur'])->get()
+            'data' => Etablissement::with(['directeur'])->get(),
+            'directeurs' => $directeurs,
+            'message' => 'Liste des établissements récupérée avec succès'
         ]);
     }
 

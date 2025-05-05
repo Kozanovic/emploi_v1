@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Filiere;
+use App\Models\Etablissement;
 use App\Models\Offrir;
 use Illuminate\Http\Request;
 
@@ -10,9 +12,13 @@ class OffrirController extends Controller
     public function index()
     {
         $offrirs = Offrir::with(['filiere', 'etablissement'])->get();
+        $filieres = Filiere::all();
+        $etablissements = Etablissement::all();
         return response()->json([
             'message' => 'Liste des associations filière/établissement récupérée avec succès',
-            'data' => $offrirs
+            'data' => $offrirs,
+            'filieres' => $filieres,
+            'etablissements' => $etablissements
         ]);
     }
 
