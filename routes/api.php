@@ -44,26 +44,26 @@ Route::apiResources([
     'directions-regionales' => DirectionRegionalController::class,
     'complexes' => ComplexeController::class,
     'etablissements' => EtablissementController::class,
-    
+
     // Tables de relations utilisateurs
     'directeurs' => DirecteurController::class,
     'formateurs' => FormateurController::class,
-    
+
     // Tables métiers
     'secteurs' => SecteurController::class,
     'filieres' => FiliereController::class,
     'groupes' => GroupeController::class,
     'modules' => ModuleController::class,
-    
+
     // Tables de planification
     'annees-scolaires' => AnneeScolaireController::class,
     'feries' => FerieController::class,
     'semaines' => SemaineController::class,
-    
+
     // Tables de gestion des ressources
     'salles' => SalleController::class,
     'seances' => SeanceController::class,
-    
+
     // Tables de jointure/pivot
     'semaine-ferie' => SemFerController::class,
     'affectations' => AffectationController::class,
@@ -71,3 +71,6 @@ Route::apiResources([
     'secteurs-etablissements' => SectEfpController::class,
     'offres-formations' => OffrirController::class
 ]);
+Route::post('/login', [UtilisateurController::class, 'login']);
+Route::post('/register', [UtilisateurController::class, 'register']);
+Route::post('/logout', [UtilisateurController::class, 'logout'])->middleware('auth:sanctum');

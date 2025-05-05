@@ -5,6 +5,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Utilisateur;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 
 class UtilisateurController extends Controller
@@ -97,6 +99,68 @@ class UtilisateurController extends Controller
 
         return response()->json([
             'message' => 'Utilisateur supprimé avec succès.'
+        ]);
+    }
+
+    public function register(Request $request)
+    {
+        // Validation des champs nécessaires
+        $validated = $request->validate([
+            'nom' => 'required|string|max:255',
+            'email' => 'required|email|unique:utilisateurs,email',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|in:Directeur,Formateur',
+        ]);
+
+        // Création de l'utilisateur après validation
+        $utilisateur = Utilisateur::create([
+            'nom' => $validated['nom'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+            'role' => $validated['role'],
+        ]);
+
+        return response()->json([
+            'message' => 'Utilisateur créé avec succès.',
+            'data' => $utilisateur
+        ]);
+    }
+    /**
+     * Authentifier un utilisateur (Login).
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $utilisateur = Utilisateur::where('email', $credentials['email'])->first();
+
+        if (!$utilisateur || !Hash::check($credentials['password'], $utilisateur->password)) {
+            return response()->json([
+                'message' => 'Identifiants invalides.'
+            ], 401);
+        }
+
+        // Créer un token (si API) ou démarrer une session
+        Auth::login($utilisateur);
+
+        return response()->json(data: [
+            'message' => 'Connexion réussie.',
+            'data' => $utilisateur
+        ]);
+    }
+
+    /**
+     * Déconnecter l'utilisateur (Logout).
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        return response()->json([
+            'message' => 'Déconnexion réussie.'
         ]);
     }
 }

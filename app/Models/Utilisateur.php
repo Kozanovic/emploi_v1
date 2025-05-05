@@ -10,6 +10,7 @@ class Utilisateur extends Model
     use HasFactory;
 
     protected $fillable = ['nom', 'email', 'password', 'role'];
+    protected $hidden = ['password'];
 
     public function directeur()
     {
