@@ -9,7 +9,7 @@ use App\Models\AnneeScolaire;
 use App\Models\Directeur;
 use App\Models\Etablissement;
 use App\Models\Formateur;
-use App\Models\Utilisateur;
+use App\Models\User as Utilisateur;
 use App\Models\Complexe;
 use App\Models\DirectionRegional;
 use App\Models\Ferie;

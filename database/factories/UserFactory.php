@@ -3,9 +3,9 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Utilisateur;
+use App\Models\User as Utilisateur;
 
-class UtilisateurFactory extends Factory
+class UserFactory extends Factory
 {
     protected $model = Utilisateur::class;
 

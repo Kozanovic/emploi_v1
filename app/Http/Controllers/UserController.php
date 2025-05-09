@@ -4,19 +4,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Utilisateur;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
+use Symfony\Component\HttpFoundation\Response;
 
-class UtilisateurController extends Controller
+class UserController extends Controller
 {
     /**
      * Afficher la liste des utilisateurs.
      */
     public function index()
     {
-        $utilisateurs = Utilisateur::all();
+        $utilisateurs = User::all();
         $roles = [
             'Directeur',
             'Formateur',
@@ -36,13 +37,13 @@ class UtilisateurController extends Controller
         // Validation des champs nécessaires
         $validated = $request->validate([
             'nom' => 'required|string|max:255',
-            'email' => 'required|email|unique:utilisateurs,email',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
             'role' => 'required|in:Directeur,Formateur',
         ]);
 
         // Création de l'utilisateur après validation
-        $utilisateur = Utilisateur::create([
+        $utilisateur = User::create([
             'nom' => $validated['nom'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
@@ -60,7 +61,7 @@ class UtilisateurController extends Controller
      */
     public function show($id)
     {
-        $utilisateur = Utilisateur::findOrFail($id);
+        $utilisateur = User::findOrFail($id);
         return response()->json([
             'message' => 'Utilisateur trouvé avec succès.',
             'data' => $utilisateur
@@ -75,12 +76,12 @@ class UtilisateurController extends Controller
         // Validation des champs nécessaires
         $validated = $request->validate([
             'nom' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:utilisateurs,email,' . $id,
+            'email' => 'sometimes|required|email|unique:users,email,' . $id,
             'password' => 'sometimes|required|string|min:8',
             'role' => 'sometimes|required|in:Directeur,Formateur',
         ]);
 
-        $utilisateur = Utilisateur::findOrFail($id);
+        $utilisateur = User::findOrFail($id);
         $utilisateur->update($validated);
 
         return response()->json([
@@ -94,7 +95,7 @@ class UtilisateurController extends Controller
      */
     public function destroy($id)
     {
-        $utilisateur = Utilisateur::findOrFail($id);
+        $utilisateur = User::findOrFail($id);
         $utilisateur->delete();
 
         return response()->json([
@@ -104,16 +105,14 @@ class UtilisateurController extends Controller
 
     public function register(Request $request)
     {
-        // Validation des champs nécessaires
         $validated = $request->validate([
             'nom' => 'required|string|max:255',
-            'email' => 'required|email|unique:utilisateurs,email',
-            'password' => 'required|string|min:8|confirmed',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
             'role' => 'required|in:Directeur,Formateur',
         ]);
 
-        // Création de l'utilisateur après validation
-        $utilisateur = Utilisateur::create([
+        $utilisateur = User::create([
             'nom' => $validated['nom'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
@@ -125,42 +124,29 @@ class UtilisateurController extends Controller
             'data' => $utilisateur
         ]);
     }
-    /**
-     * Authentifier un utilisateur (Login).
-     */
+
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
-
-        $utilisateur = Utilisateur::where('email', $credentials['email'])->first();
-
-        if (!$utilisateur || !Hash::check($credentials['password'], $utilisateur->password)) {
+        if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
-                'message' => 'Identifiants invalides.'
-            ], 401);
+                'message' => 'Email ou mot de passe incorrect.',
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Créer un token (si API) ou démarrer une session
-        Auth::login($utilisateur);
+        $utilisateur = Auth::user();
+        $token = $utilisateur->createToken('token')->plainTextToken;
 
-        return response()->json(data: [
-            'message' => 'Connexion réussie.',
-            'data' => $utilisateur
-        ]);
+        $cookie = cookie('jwt', $token, 60 * 24); // 1 jour
+        return response()->json([
+            'message' => $token,
+            'data' => $utilisateur,
+        ])->withCookie($cookie);
     }
 
-    /**
-     * Déconnecter l'utilisateur (Logout).
-     */
-    public function logout(Request $request)
-    {
-        Auth::logout();
-
+    public function logout(){
+        $cookie = Cookie::forget('jwt');
         return response()->json([
             'message' => 'Déconnexion réussie.'
-        ]);
+        ])->withCookie($cookie);
     }
 }

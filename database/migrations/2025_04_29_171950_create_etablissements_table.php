@@ -17,7 +17,7 @@ return new class extends Migration
             $table->longText('adresse');
             $table->string('telephone');
             $table->foreignId('directeur_id')
-                ->constrained('utilisateurs')
+                ->constrained('directeurs')
                 ->onDelete('cascade');
             $table->timestamps();
         });

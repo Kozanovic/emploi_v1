@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Formateur;
-use App\Models\Utilisateur;
+use App\Models\User as Utilisateur;
 use App\Models\Etablissement;
 use App\Models\Complexe;
 use App\Models\DirectionRegional;

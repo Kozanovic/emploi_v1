@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('specialite');
             $table->integer('heures_hebdomadaire');
             $table->foreignId('utilisateur_id')
-                ->constrained('utilisateurs')
+                ->constrained('users')
                 ->onDelete('cascade');
             $table->foreignId('etablissement_id')
                 ->constrained('etablissements')

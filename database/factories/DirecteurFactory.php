@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Directeur;
-use App\Models\Utilisateur;
+use App\Models\User as Utilisateur;
 
 class DirecteurFactory extends Factory
 {

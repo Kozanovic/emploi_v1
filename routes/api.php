@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
-    UtilisateurController,
+    UserController,
     DirectionRegionalController,
     ComplexeController,
     EtablissementController,
@@ -34,13 +34,13 @@ use App\Http\Controllers\{
 |
 */
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Route::get('/user', function (Request $request) {
+//     return $request->user();
+// })->middleware('auth:sanctum');
 
 Route::apiResources([
     // Tables principales
-    'utilisateurs' => UtilisateurController::class,
+    'utilisateurs' => UserController::class,
     'directions-regionales' => DirectionRegionalController::class,
     'complexes' => ComplexeController::class,
     'etablissements' => EtablissementController::class,
@@ -71,6 +71,10 @@ Route::apiResources([
     'secteurs-etablissements' => SectEfpController::class,
     'offres-formations' => OffrirController::class
 ]);
-Route::post('/login', [UtilisateurController::class, 'login']);
-Route::post('/register', [UtilisateurController::class, 'register']);
-Route::post('/logout', [UtilisateurController::class, 'logout'])->middleware('auth:sanctum');
+
+Route::post('/register', [UserController::class, 'register'])->name('register');
+Route::post('/login', [UserController::class, 'login'])->name('login');
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [UserController::class, 'logout']);
+});
