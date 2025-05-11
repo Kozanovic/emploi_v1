@@ -5,10 +5,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cookie;
-use Symfony\Component\HttpFoundation\Response;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -82,7 +81,12 @@ class UserController extends Controller
         ]);
 
         $utilisateur = User::findOrFail($id);
-        $utilisateur->update($validated);
+        $utilisateur->update([
+            'nom' => $validated['nom'] ?? $utilisateur->nom,
+            'email' => $validated['email'] ?? $utilisateur->email,
+            'password' => isset($validated['password']) ? Hash::make($validated['password']) : $utilisateur->password,
+            'role' => $validated['role'] ?? $utilisateur->role,
+        ]);
 
         return response()->json([
             'message' => 'Utilisateur mis à jour avec succès.',
@@ -103,6 +107,7 @@ class UserController extends Controller
         ]);
     }
 
+
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -115,38 +120,58 @@ class UserController extends Controller
         $utilisateur = User::create([
             'nom' => $validated['nom'],
             'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
+            'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
         ]);
 
+        // crèe une token  á l‘aide de Jwt
+        $token = JWTAuth::fromUser($utilisateur);
+
         return response()->json([
-            'message' => 'Utilisateur créé avec succès.',
-            'data' => $utilisateur
-        ]);
+            'message' => "regsiter créé avec succès",
+            'utilisateur' => $utilisateur,
+            'token' => $token
+        ], 201); // 201  sginifier la creation
     }
 
     public function login(Request $request)
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string|min:8',
+        ]);
+
+        $utilisateur = User::where('email', $validated["email"])->first();
+        if (!$utilisateur || !Hash::check($validated['password'], $utilisateur->password)) {
             return response()->json([
                 'message' => 'Email ou mot de passe incorrect.',
-            ], Response::HTTP_UNAUTHORIZED);
+            ], 401); // 401 signifie non autorisé
         }
 
-        $utilisateur = Auth::user();
-        $token = $utilisateur->createToken('token')->plainTextToken;
-
-        $cookie = cookie('jwt', $token, 60 * 24); // 1 jour
+        // crèe une token  á l‘aide de Jwt
+        $token = JWTAuth::fromUser($utilisateur);
         return response()->json([
-            'message' => $token,
-            'data' => $utilisateur,
-        ])->withCookie($cookie);
+            'message' => 'Connexion réussie.',
+            'utilisateur' => $utilisateur,
+            'token' => $token
+        ], 200); // 200 signifie succès
     }
-
-    public function logout(){
-        $cookie = Cookie::forget('jwt');
+    public function logout()
+    {
+        JWTAuth::invalidate(JWTAuth::getToken());
         return response()->json([
             'message' => 'Déconnexion réussie.'
-        ])->withCookie($cookie);
+        ]);
+    }
+
+    public function getUser(Request $request)
+    {
+        $utilisateur = $request->attributes->get('user');
+
+        if (!$utilisateur) {
+            return response()->json(['message' => 'Utilisateur non authentifié'], 401);
+        }
+
+        return response()->json($utilisateur);
     }
 }

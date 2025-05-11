@@ -24,6 +24,7 @@ use App\Http\Controllers\{
     SectEfpController,
     OffrirController
 };
+use App\Http\Middleware\AuthJwtMiddlewaer;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,43 +39,45 @@ use App\Http\Controllers\{
 //     return $request->user();
 // })->middleware('auth:sanctum');
 
-Route::apiResources([
-    // Tables principales
-    'utilisateurs' => UserController::class,
-    'directions-regionales' => DirectionRegionalController::class,
-    'complexes' => ComplexeController::class,
-    'etablissements' => EtablissementController::class,
 
-    // Tables de relations utilisateurs
-    'directeurs' => DirecteurController::class,
-    'formateurs' => FormateurController::class,
+Route::post('/login', [UserController::class, 'login']);
+// Route::post('/register', [UserController::class, 'register']);
 
-    // Tables métiers
-    'secteurs' => SecteurController::class,
-    'filieres' => FiliereController::class,
-    'groupes' => GroupeController::class,
-    'modules' => ModuleController::class,
-
-    // Tables de planification
-    'annees-scolaires' => AnneeScolaireController::class,
-    'feries' => FerieController::class,
-    'semaines' => SemaineController::class,
-
-    // Tables de gestion des ressources
-    'salles' => SalleController::class,
-    'seances' => SeanceController::class,
-
-    // Tables de jointure/pivot
-    'semaine-ferie' => SemFerController::class,
-    'affectations' => AffectationController::class,
-    'suivres' => SuivreController::class,
-    'secteurs-etablissements' => SectEfpController::class,
-    'offres-formations' => OffrirController::class
-]);
-
-Route::post('/register', [UserController::class, 'register'])->name('register');
-Route::post('/login', [UserController::class, 'login'])->name('login');
-
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware([AuthJwtMiddlewaer::class, 'can:manage-resources'])->group(function () {
     Route::post('/logout', [UserController::class, 'logout']);
+    Route::get('/utilisateur', [UserController::class, 'getUser']);
+    Route::get('utilisateurs', [UserController::class, 'index']);
+
+    Route::apiResources([
+        // Tables principales
+        'directions-regionales' => DirectionRegionalController::class,
+        'complexes' => ComplexeController::class,
+        'etablissements' => EtablissementController::class,
+
+        // Tables de relations utilisateurs
+        'directeurs' => DirecteurController::class,
+        'formateurs' => FormateurController::class,
+
+        // Tables métiers
+        'secteurs' => SecteurController::class,
+        'filieres' => FiliereController::class,
+        'groupes' => GroupeController::class,
+        'modules' => ModuleController::class,
+
+        // Tables de planification
+        'annees-scolaires' => AnneeScolaireController::class,
+        'feries' => FerieController::class,
+        'semaines' => SemaineController::class,
+
+        // Tables de gestion des ressources
+        'salles' => SalleController::class,
+        'seances' => SeanceController::class,
+
+        // Tables de jointure/pivot
+        'semaine-ferie' => SemFerController::class,
+        'affectations' => AffectationController::class,
+        'suivres' => SuivreController::class,
+        'secteurs-etablissements' => SectEfpController::class,
+        'offres-formations' => OffrirController::class
+    ]);
 });
