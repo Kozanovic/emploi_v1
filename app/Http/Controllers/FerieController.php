@@ -11,8 +11,8 @@ class FerieController extends Controller
     {
         $feries = Ferie::all();
         return response()->json([
+            'message' => 'Liste des jours fériés récupérée avec succès.',
             'data' => $feries,
-            'message' => 'Liste des jours fériés récupérée avec succès.'
         ], 200);
     }
 
@@ -36,8 +36,8 @@ class FerieController extends Controller
     {
         $ferie = Ferie::findOrFail($id);
         return response()->json([
+            'message' => 'Jour férié récupéré avec succès.',
             'data' => $ferie,
-            'message' => 'Jour férié récupéré avec succès.'
         ], 200);
     }
 

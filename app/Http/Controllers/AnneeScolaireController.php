@@ -3,19 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnneeScolaire;
-use App\Models\Etablissement;
 use Illuminate\Http\Request;
 
 class AnneeScolaireController extends Controller
 {
     public function index()
     {
-        $etablissements = Etablissement::all();
         $annees = AnneeScolaire::with('etablissement')->get();
         return response()->json([
+            'message' => 'Liste des années scolaires récupérée avec succès.',
             'data' => $annees,
-            'etablissements' => $etablissements,
-            'message' => 'Liste des années scolaires récupérée avec succès.'
         ], 200);
     }
 
@@ -40,8 +37,8 @@ class AnneeScolaireController extends Controller
     {
         $annee = AnneeScolaire::with('etablissement')->findOrFail($id);
         return response()->json([
+            'message' => 'Année scolaire récupérée avec succès.',
             'data' => $annee,
-            'message' => 'Année scolaire récupérée avec succès.'
         ], 200);
     }
 

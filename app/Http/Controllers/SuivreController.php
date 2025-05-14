@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Suivre;
-use App\Models\Module;
-use App\Models\Groupe;
 use Illuminate\Http\Request;
 
 class SuivreController extends Controller
@@ -12,13 +10,9 @@ class SuivreController extends Controller
     public function index()
     {
         $suivres = Suivre::with(['module', 'groupe'])->get();
-        $modules = Module::all();
-        $groupes = Groupe::all();
         return response()->json([
-            'data' => $suivres,
-            'modules' => $modules,
-            'groupes' => $groupes,
             'message' => 'Liste des suivis récupérée avec succès',
+            'data' => $suivres,
         ]);
     }
 

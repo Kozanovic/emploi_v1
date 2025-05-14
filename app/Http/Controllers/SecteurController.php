@@ -12,8 +12,8 @@ class SecteurController extends Controller
         //with('etablissements')->get()
         $secteurs = Secteur::all();
         return response()->json([
+            'message' => 'Liste des secteurs récupérée avec succès.',
             'data' => $secteurs,
-            'message' => 'Liste des secteurs récupérée avec succès.'
         ]);
     }
 
@@ -34,7 +34,7 @@ class SecteurController extends Controller
         //with('etablissements')->findOrFail($id);
         $secteur = Secteur::findOrFail($id);
         return response()->json([
-            'secteur' => $secteur
+            'data' => $secteur
         ]);
     }
 
@@ -48,7 +48,7 @@ class SecteurController extends Controller
         //->fresh('etablissements')
         return response()->json([
             'message' => 'Secteur mis à jour',
-            'secteur' => $secteur
+            'data' => $secteur
         ]);
     }
 

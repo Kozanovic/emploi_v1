@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Filiere;
 use App\Models\Groupe;
-use App\Models\Etablissement;
 use Illuminate\Http\Request;
 
 class GroupeController extends Controller
@@ -12,13 +10,9 @@ class GroupeController extends Controller
     public function index()
     {
         $groupes = Groupe::with(['filiere', 'etablissement'])->get();
-        $filieres = Filiere::all();
-        $etablissements = Etablissement::all();
         return response()->json([
+            'message' => 'Liste des groupes récupérée avec succès.',
             'data' => $groupes,
-            'filieres' => $filieres,
-            'etablissements' => $etablissements,
-            'message' => 'Liste des groupes récupérée avec succès.'
         ]);
     }
 
@@ -34,8 +28,8 @@ class GroupeController extends Controller
         $groupe = Groupe::create($validated)->fresh(['filiere', 'etablissement']);
 
         return response()->json([
+            'message' => 'Groupe créé avec succès.',
             'data' => $groupe,
-            'message' => 'Groupe créé avec succès.'
         ]);
     }
 
@@ -43,8 +37,8 @@ class GroupeController extends Controller
     {
         $groupe = Groupe::with(['filiere', 'etablissement'])->findOrFail($id);
         return response()->json([
+            'message' => 'Détails du groupe récupérés avec succès.',
             'data' => $groupe,
-            'message' => 'Détails du groupe récupérés avec succès.'
         ]);
     }
 
@@ -63,8 +57,8 @@ class GroupeController extends Controller
         $groupe->load(['filiere', 'etablissement']);
 
         return response()->json([
+            'message' => 'Groupe mis à jour avec succès.',
             'data' => $groupe,
-            'message' => 'Groupe mis à jour avec succès.'
         ]);
     }
 

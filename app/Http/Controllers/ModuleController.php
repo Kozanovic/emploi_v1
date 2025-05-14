@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Filiere;
 use App\Models\Module;
 use Illuminate\Http\Request;
 
@@ -11,11 +10,9 @@ class ModuleController extends Controller
     public function index()
     {
         $modules = Module::with(['filiere'])->get();
-        $filieres = Filiere::all();
         return response()->json([
+            'message' => 'Liste des modules récupérée avec succès.',
             'data' => $modules,
-            'filieres' => $filieres,
-            'message' => 'Liste des modules récupérée avec succès.'
         ]);
     }
 
@@ -34,8 +31,8 @@ class ModuleController extends Controller
         $module = Module::create($validated)->fresh(['filiere']);
 
         return response()->json([
+            'message' => 'Module créé avec succès.',
             'data' => $module,
-            'message' => 'Module créé avec succès.'
         ]);
     }
 
@@ -43,8 +40,8 @@ class ModuleController extends Controller
     {
         $module = Module::with(['filiere'])->findOrFail($id);
         return response()->json([
+            'message' => 'Détails du module récupérés avec succès.',
             'data' => $module,
-            'message' => 'Détails du module récupérés avec succès.'
         ]);
     }
 
@@ -66,8 +63,8 @@ class ModuleController extends Controller
         $module->load(['filiere']);
 
         return response()->json([
+            'message' => 'Module mis à jour avec succès.',
             'data' => $module,
-            'message' => 'Module mis à jour avec succès.'
         ]);
     }
 

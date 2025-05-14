@@ -3,25 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Affectation;
-use App\Models\Formateur;
-use App\Models\Groupe;
-use App\Models\Module;
 use Illuminate\Http\Request;
 
 class AffectationController extends Controller
 {
     public function index()
     {
-        $modules = Module::all();
-        $formateurs = Formateur::all();
-        $groupes = Groupe::all();
         $affectations = Affectation::with(['formateur', 'module', 'groupe'])->get();
         return response()->json([
-            'data' => $affectations,
             'message' => 'Liste des affectations récupérée avec succès',
-            'modules' => $modules,
-            'formateurs' => $formateurs,
-            'groupes' => $groupes
+            'data' => $affectations,
         ]);
     }
 

@@ -3,11 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Seance;
-use App\Models\Semaine;
-use App\Models\Salle;
-use App\Models\Module;
-use App\Models\Formateur;
-use App\Models\Groupe;
 use Illuminate\Http\Request;
 
 class SeanceController extends Controller
@@ -15,19 +10,9 @@ class SeanceController extends Controller
     public function index()
     {
         $seances = Seance::with(['semaine', 'salle', 'module', 'formateur', 'groupe'])->get();
-        $semaines = Semaine::all();
-        $salles = Salle::all();
-        $modules = Module::all();
-        $formateurs = Formateur::all();
-        $groupes = Groupe::all();
         return response()->json([
+            'message' => 'Liste des séances récupérée avec succès.',
             'data' => $seances,
-            'semaines' => $semaines,
-            'salles' => $salles,
-            'modules' => $modules,
-            'formateurs' => $formateurs,
-            'groupes' => $groupes,
-            'message' => 'Liste des séances récupérée avec succès.'
         ], 200);
     }
 
@@ -38,7 +23,6 @@ class SeanceController extends Controller
             'heure_debut' => 'required|date_format:H:i',
             'heure_fin' => 'required|date_format:H:i|after:heure_debut',
             'type' => 'required|in:presentiel,distanciel',
-            'duree' => 'required|in:2h30,5h',
             'numero_seance' => 'required|integer|min:1',
             'semaine_id' => 'required|exists:semaines,id',
             'salle_id' => 'required|exists:salles,id',
@@ -60,8 +44,8 @@ class SeanceController extends Controller
         $seance = Seance::with(['semaine', 'salle', 'module', 'formateur', 'groupe'])->findOrFail($id);
 
         return response()->json([
+            'message' => 'Séance récupérée avec succès.',
             'data' => $seance,
-            'message' => 'Séance récupérée avec succès.'
         ], 200);
     }
 
@@ -74,7 +58,6 @@ class SeanceController extends Controller
             'heure_debut' => 'sometimes|required|date_format:H:i',
             'heure_fin' => 'sometimes|required|date_format:H:i|after:heure_debut',
             'type' => 'sometimes|required|in:presentiel,distanciel',
-            'duree' => 'sometimes|required|in:2h30,5h',
             'numero_seance' => 'sometimes|required|integer|min:1',
             'semaine_id' => 'sometimes|required|exists:semaines,id',
             'salle_id' => 'sometimes|required|exists:salles,id',

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Etablissement;
-use App\Models\User as Utilisateur;
 use Illuminate\Http\Request;
 
 class EtablissementController extends Controller
@@ -13,11 +12,10 @@ class EtablissementController extends Controller
      */
     public function index()
     {
-        $directeurs = Utilisateur::where('role', 'Directeur')->get();
+        $etablissements = Etablissement::with(['directeur'])->get();
         return response()->json([
-            'data' => Etablissement::with(['directeur'])->get(),
-            'directeurs' => $directeurs,
-            'message' => 'Liste des établissements récupérée avec succès'
+            'message' => 'Liste des établissements récupérée avec succès',
+            'data' => $etablissements,
         ]);
     }
 
@@ -36,8 +34,8 @@ class EtablissementController extends Controller
         $etablissement = Etablissement::create($data);
 
         return response()->json([
+            'message' => 'Etablissement créé avec succès',
             'data' => $etablissement->load(['directeur']),
-            'message' => 'Etablissement créé avec succès'
         ], 201);
     }
 
@@ -47,8 +45,8 @@ class EtablissementController extends Controller
     public function show(Etablissement $etablissement)
     {
         return response()->json([
+            'message' => 'Etablissement récupéré avec succès',
             'data' => $etablissement->load(['directeur']),
-            'message' => 'Etablissement récupéré avec succès'
         ]);
     }
 
@@ -67,8 +65,8 @@ class EtablissementController extends Controller
         $etablissement->update($data);
 
         return response()->json([
+            'message' => 'Etablissement mis à jour avec succès',
             'data' => $etablissement->fresh('directeur'),
-            'message' => 'Etablissement mis à jour avec succès'
         ]);
     }
 

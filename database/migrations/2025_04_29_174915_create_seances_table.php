@@ -17,7 +17,6 @@ return new class extends Migration
             $table->time('heure_debut');
             $table->time('heure_fin');
             $table->enum('type',['presentiel', 'distanciel']);
-            $table->enum('duree',['2h30','5h']);
             $table->integer('numero_seance');
             $table->foreignId('semaine_id')->constrained('semaines')->onDelete('cascade');
             $table->foreignId('salle_id')->constrained('salles')->onDelete('cascade');

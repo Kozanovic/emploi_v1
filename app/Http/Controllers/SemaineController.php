@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AnneeScolaire;
 use App\Models\Semaine;
 use Illuminate\Http\Request;
 
@@ -11,11 +10,9 @@ class SemaineController extends Controller
     public function index()
     {
         $semaines = Semaine::with(['anneeScolaire'])->get();
-        $anneeScolaires = AnneeScolaire::all();
         return response()->json([
+            'message' => 'Liste des semaines récupérée avec succès.',
             'data' => $semaines,
-            'anneeScolaires' => $anneeScolaires,
-            'message' => 'Liste des semaines récupérée avec succès.'
         ], 200);
     }
 
@@ -31,18 +28,18 @@ class SemaineController extends Controller
         $semaine = Semaine::create($validated);
 
         return response()->json([
+            'message' => 'Semaine créée avec succès.',
             'data' => $semaine,
-            'message' => 'Semaine créée avec succès.'
         ], 201);
     }
 
     public function show($id)
     {
         $semaine = Semaine::with(['anneeScolaire'])->findOrFail($id);
-        
+
         return response()->json([
+            'message' => 'Semaine récupérée avec succès.',
             'data' => $semaine,
-            'message' => 'Semaine récupérée avec succès.'
         ], 200);
     }
 

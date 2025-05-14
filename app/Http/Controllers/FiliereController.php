@@ -12,8 +12,8 @@ class FiliereController extends Controller
         //with(['modules', 'groupes', 'etablissements'])->get()
         $filieres = Filiere::all();
         return response()->json([
+            'message' => 'Liste des filières récupérée avec succès.',
             'data' => $filieres,
-            'message' => 'Liste des filières récupérée avec succès.'
         ]);
     }
 
@@ -26,8 +26,8 @@ class FiliereController extends Controller
         $filiere = Filiere::create($validated);
 
         return response()->json([
+            'message' => 'Filière créée avec succès.',
             'data' => $filiere,
-            'message' => 'Filière créée avec succès.'
         ]);
     }
 
@@ -37,8 +37,8 @@ class FiliereController extends Controller
         $filiere = Filiere::findOrFail($id);
 
         return response()->json([
+            'message' => 'Détails de la filière récupérés avec succès.',
             'data' => $filiere,
-            'message' => 'Détails de la filière récupérés avec succès.'
         ]);
     }
 
@@ -51,11 +51,10 @@ class FiliereController extends Controller
         ]);
 
         $filiere->update($validated);
-        $filiere->load(['modules', 'groupes', 'etablissements']);
 
         return response()->json([
+            'message' => 'Filière mise à jour avec succès.',
             'data' => $filiere,
-            'message' => 'Filière mise à jour avec succès.'
         ]);
     }
 

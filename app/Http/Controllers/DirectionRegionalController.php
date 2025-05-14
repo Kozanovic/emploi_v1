@@ -37,6 +37,12 @@ class DirectionRegionalController extends Controller
             'adresse' => 'required|string|max:255',
             'telephone' => 'required|string|max:255',
         ]);
+
+        $directionRegional = DirectionRegional::create($request->all());
+        return response()->json([
+            'message' => 'Direction régionale créée avec succès',
+            'data' => $directionRegional
+        ], 201);
     }
 
     /**

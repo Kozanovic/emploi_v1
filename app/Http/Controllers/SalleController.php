@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Salle;
-use App\Models\Etablissement;
 use Illuminate\Http\Request;
 
 class SalleController extends Controller
@@ -12,11 +11,9 @@ class SalleController extends Controller
     {
 
         $salles = Salle::with(['etablissement'])->get();
-        $etablissements = Etablissement::all();
         return response()->json([
+            'message' => 'Liste des salles récupérée avec succès.',
             'data' => $salles,
-            'etablissements' => $etablissements,
-            'message' => 'Liste des salles récupérée avec succès.'
         ], 200);
     }
 
@@ -41,8 +38,8 @@ class SalleController extends Controller
     {
         $salle = Salle::with('etablissement')->findOrFail($id);
         return response()->json([
+            'message' => 'Salle récupérée avec succès.',
             'data' => $salle,
-            'message' => 'Salle récupérée avec succès.'
         ], 200);
     }
 

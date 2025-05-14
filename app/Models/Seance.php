@@ -14,7 +14,6 @@ class Seance extends Model
         'heure_debut',
         'heure_fin',
         'type',
-        'duree',
         'numero_seance',
         'semaine_id',
         'salle_id',

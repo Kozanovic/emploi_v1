@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Directeur;
-use App\Models\User as Utilisateur;
 use Illuminate\Http\Request;
 
 class DirecteurController extends Controller
@@ -13,10 +12,10 @@ class DirecteurController extends Controller
      */
     public function index()
     {
-        $utilisateurs = Utilisateur::all();
+        $directeurs = Directeur::with('utilisateur')->get();
         return response()->json([
-            'data' => Directeur::with('utilisateur')->get(),
-            'utilisateurs' => $utilisateurs,
+            'message' => 'Liste des directeurs récupérée avec succès.',
+            'data' => $directeurs,
         ]);
     }
 
@@ -32,7 +31,8 @@ class DirecteurController extends Controller
         $directeur = Directeur::create($data);
 
         return response()->json([
-            'data' => $directeur->load('utilisateur')
+            'message' => 'Directeur créé avec succès.',
+            'data' => $directeur->load('utilisateur'),
         ], 201);
     }
 
@@ -42,7 +42,8 @@ class DirecteurController extends Controller
     public function show(Directeur $directeur)
     {
         return response()->json([
-            'data' => $directeur->load(['utilisateur'])
+            'message' => 'Directeur récupéré avec succès.',
+            'data' => $directeur->load(['utilisateur']),
         ]);
     }
 
@@ -58,7 +59,8 @@ class DirecteurController extends Controller
         $directeur->update($data);
 
         return response()->json([
-            'data' => $directeur->fresh('utilisateur')
+            'message' => 'Directeur mis à jour avec succès.',
+            'data' => $directeur->fresh('utilisateur'),
         ]);
     }
 
