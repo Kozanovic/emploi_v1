@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Directeur;
-use App\Models\Utilisateur;
+use App\Models\User as Utilisateur;
 use Illuminate\Http\Request;
 
 class DirecteurController extends Controller

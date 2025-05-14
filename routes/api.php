@@ -41,12 +41,13 @@ use App\Http\Middleware\AuthJwtMiddlewaer;
 
 
 Route::post('/login', [UserController::class, 'login']);
-// Route::post('/register', [UserController::class, 'register']);
 
 Route::middleware([AuthJwtMiddlewaer::class, 'can:manage-resources'])->group(function () {
-    Route::post('/logout', [UserController::class, 'logout']);
-    Route::get('/utilisateur', [UserController::class, 'getUser']);
-    Route::get('utilisateurs', [UserController::class, 'index']);
+    Route::get('/utilisateurs', [UserController::class, 'index']);
+    Route::post('/register', [UserController::class, 'register']);
+    Route::get('/utilisateurs/{id}', [UserController::class, 'show']);
+    Route::put('/utilisateurs/{id}', [UserController::class, 'update']);
+    Route::delete('/utilisateurs/{id}', [UserController::class, 'destroy']);
 
     Route::apiResources([
         // Tables principales

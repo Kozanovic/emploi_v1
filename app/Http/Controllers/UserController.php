@@ -27,34 +27,6 @@ class UserController extends Controller
             'roles' => $roles
         ]);
     }
-
-    /**
-     * Créer un utilisateur.
-     */
-    public function store(Request $request)
-    {
-        // Validation des champs nécessaires
-        $validated = $request->validate([
-            'nom' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
-            'role' => 'required|in:Directeur,Formateur',
-        ]);
-
-        // Création de l'utilisateur après validation
-        $utilisateur = User::create([
-            'nom' => $validated['nom'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'role' => $validated['role'],
-        ]);
-
-        return response()->json([
-            'message' => 'Utilisateur créé avec succès.',
-            'data' => $utilisateur
-        ]);
-    }
-
     /**
      * Afficher les détails d'un utilisateur.
      */
@@ -155,23 +127,5 @@ class UserController extends Controller
             'utilisateur' => $utilisateur,
             'token' => $token
         ], 200); // 200 signifie succès
-    }
-    public function logout()
-    {
-        JWTAuth::invalidate(JWTAuth::getToken());
-        return response()->json([
-            'message' => 'Déconnexion réussie.'
-        ]);
-    }
-
-    public function getUser(Request $request)
-    {
-        $utilisateur = $request->attributes->get('user');
-
-        if (!$utilisateur) {
-            return response()->json(['message' => 'Utilisateur non authentifié'], 401);
-        }
-
-        return response()->json($utilisateur);
     }
 }

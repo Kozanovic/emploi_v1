@@ -13,6 +13,6 @@ class Directeur extends Model
 
     public function utilisateur()
     {
-        return $this->belongsTo(Utilisateur::class);
+        return $this->belongsTo(User::class);
     }
 }

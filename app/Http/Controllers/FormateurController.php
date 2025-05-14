@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Formateur;
-use App\Models\Utilisateur;
+use App\Models\User as Utilisateur;
 use Illuminate\Http\Request;
 
 class FormateurController extends Controller
