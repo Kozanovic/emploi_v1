@@ -24,6 +24,7 @@ use App\Models\SectEfp;
 use App\Models\Semaine;
 use App\Models\SemFer;
 use App\Models\Suivre;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -34,9 +35,15 @@ class DatabaseSeeder extends Seeder
     {
         // Utilisateur::factory()->create();
         Utilisateur::factory()->create([
+            'nom' => 'mohammed',
+            'email' => 'mohammed@gmail.com',
+            'password' => Hash::make('AQZSEDRF'),
             'role' => 'Directeur',
         ]);
         Utilisateur::factory()->create([
+            'nom' => 'rayan',
+            'email' => 'rayan@gmail.com',
+            'password' => Hash::make('AQZSEDRF'),
             'role' => 'Formateur',
         ]);
         DirectionRegional::factory()->create();
