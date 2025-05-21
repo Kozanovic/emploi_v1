@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Directeur;
+use App\Models\DirecteurEtablissement;
 use Illuminate\Http\Request;
 
-class DirecteurController extends Controller
+class directeurEtablissementController extends Controller
 {
     /**
      * Affiche la liste des directeurs
      */
     public function index()
     {
-        $directeurs = Directeur::with('utilisateur')->get();
+        $directeursEtablissement = DirecteurEtablissement::with('utilisateur')->get();
         return response()->json([
             'message' => 'Liste des directeurs récupérée avec succès.',
-            'data' => $directeurs,
+            'data' => $directeursEtablissement,
         ]);
     }
 
@@ -25,10 +25,10 @@ class DirecteurController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'utilisateur_id' => 'required|exists:utilisateurs,id|unique:directeurs'
+            'utilisateur_id' => 'required|exists:utilisateurs,id|unique:directeur_regionals'
         ]);
 
-        $directeur = Directeur::create($data);
+        $directeur = DirecteurEtablissement::create($data);
 
         return response()->json([
             'message' => 'Directeur créé avec succès.',
@@ -39,7 +39,7 @@ class DirecteurController extends Controller
     /**
      * Affiche un directeur spécifique
      */
-    public function show(Directeur $directeur)
+    public function show(DirecteurEtablissement $directeur)
     {
         return response()->json([
             'message' => 'Directeur récupéré avec succès.',
@@ -50,10 +50,10 @@ class DirecteurController extends Controller
     /**
      * Met à jour un directeur
      */
-    public function update(Request $request, Directeur $directeur)
+    public function update(Request $request, DirecteurEtablissement $directeur)
     {
         $data = $request->validate([
-            'utilisateur_id' => 'sometimes|exists:utilisateurs,id|unique:directeurs,utilisateur_id,' . $directeur->id
+            'utilisateur_id' => 'sometimes|exists:utilisateurs,id|unique:directeur_regionals,utilisateur_id,' . $directeur->id
         ]);
 
         $directeur->update($data);
@@ -67,7 +67,7 @@ class DirecteurController extends Controller
     /**
      * Supprime un directeur
      */
-    public function destroy(Directeur $directeur)
+    public function destroy(DirecteurEtablissement $directeur)
     {
         $directeur->delete();
         return response()->json([

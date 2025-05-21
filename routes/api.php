@@ -7,7 +7,10 @@ use App\Http\Controllers\{
     DirectionRegionalController,
     ComplexeController,
     EtablissementController,
-    DirecteurController,
+    directeurEtablissementController,
+    directeurSuperController,
+    directeurComplexeController,
+    directeurRegionalController,
     FormateurController,
     SecteurController,
     FiliereController,
@@ -56,7 +59,10 @@ Route::middleware([AuthJwtMiddlewaer::class, 'can:manage-resources'])->group(fun
         'etablissements' => EtablissementController::class,
 
         // Tables de relations utilisateurs
-        'directeurs' => DirecteurController::class,
+        'directeur-etablissements' => directeurEtablissementController::class,
+        'directeurs-regionales' => directeurRegionalController::class,
+        'directeurs-super' => directeurSuperController::class,
+        'directeurs-complexes' => directeurComplexeController::class,
         'formateurs' => FormateurController::class,
 
         // Tables métiers

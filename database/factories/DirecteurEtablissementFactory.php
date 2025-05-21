@@ -3,16 +3,16 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Directeur;
+use App\Models\directeurEtablissement;
 use App\Models\User as Utilisateur;
 
-class DirecteurFactory extends Factory
+class DirecteurEtablissementFactory extends Factory
 {
-    protected $model = Directeur::class;
+    protected $model = directeurEtablissement::class;
 
     public function definition()
     {
-        $utilisateur = Utilisateur::where('role', 'directeur')->inRandomOrder()->first();
+        $utilisateur = Utilisateur::where('role', 'DirecteurEtablissement')->inRandomOrder()->first();
 
         return [
             'utilisateur_id' => $utilisateur->id,

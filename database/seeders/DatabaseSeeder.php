@@ -6,7 +6,10 @@ use App\Models\Affectation;
 use Illuminate\Database\Seeder;
 
 use App\Models\AnneeScolaire;
-use App\Models\Directeur;
+use App\Models\directeurEtablissement;
+use App\Models\DirecteurSuper;
+use App\Models\DirecteurComplexe;
+use App\Models\DirecteurRegional;
 use App\Models\Etablissement;
 use App\Models\Formateur;
 use App\Models\User as Utilisateur;
@@ -33,12 +36,30 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Utilisateur::factory()->create();
+        Utilisateur::factory()->create();
         Utilisateur::factory()->create([
             'nom' => 'mohammed',
             'email' => 'mohammed@gmail.com',
             'password' => Hash::make('AQZSEDRF'),
-            'role' => 'Directeur',
+            'role' => 'DirecteurEtablissement',
+        ]);
+        Utilisateur::factory()->create([
+            'nom' => 'amine',
+            'email' => 'amine@gmail.com',
+            'password' => Hash::make('AQZSEDRF'),
+            'role' => 'DirecteurSuper',
+        ]);
+        Utilisateur::factory()->create([
+            'nom' => 'sanaa',
+            'email' => 'sanaa@gmail.com',
+            'password' => Hash::make('AQZSEDRF'),
+            'role' => 'DirecteurRegional',
+        ]);
+        Utilisateur::factory()->create([
+            'nom' => 'outhman',
+            'email' => 'outhman@gmail.com',
+            'password' => Hash::make('AQZSEDRF'),
+            'role' => 'DirecteurComplexe',
         ]);
         Utilisateur::factory()->create([
             'nom' => 'rayan',
@@ -48,7 +69,10 @@ class DatabaseSeeder extends Seeder
         ]);
         DirectionRegional::factory()->create();
         Complexe::factory()->create();
-        Directeur::factory()->create();
+        directeurEtablissement::factory()->create();
+        DirecteurSuper::factory()->create();
+        DirecteurComplexe::factory()->create();
+        DirecteurRegional::factory()->create();
         Etablissement::factory()->create();
         Formateur::factory()->create();
         Secteur::factory()->create();

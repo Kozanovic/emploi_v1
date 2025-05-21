@@ -12,9 +12,9 @@ class User extends Authenticatable implements JWTSubject
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'nom', 
-        'email', 
-        'password', 
+        'nom',
+        'email',
+        'password',
         'role'
     ];
 
@@ -40,24 +40,45 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
-
-    public function directeur()
+    public function directeurSuper()
     {
-        return $this->hasOne(Directeur::class);
+        return $this->hasOne(DirecteurSuper::class);
     }
-
+    public function directeurRegional()
+    {
+        return $this->hasOne(DirecteurRegional::class);
+    }
+    public function directeurComplexe()
+    {
+        return $this->hasOne(DirecteurComplexe::class);
+    }
+    public function directeurEtablissement()
+    {
+        return $this->hasOne(DirecteurEtablissement::class);
+    }
     public function formateur()
     {
         return $this->hasOne(Formateur::class);
     }
 
+    public function estDirecteurSuper()
+    {
+        return $this->role === 'DirecteurSuper';
+    }
+    public function estDirecteurRegional()
+    {
+        return $this->role === 'DirecteurRegional';
+    }
+    public function estDirecteurComplexe()
+    {
+        return $this->role === 'DirecteurComplexe';
+    }
+    public function estDirecteurEtablissement()
+    {
+        return $this->role === 'DirecteurEtablissement';
+    }
     public function estFormateur()
     {
         return $this->role === 'Formateur';
-    }
-
-    public function estDirecteur()
-    {
-        return $this->role === 'Directeur';
     }
 }

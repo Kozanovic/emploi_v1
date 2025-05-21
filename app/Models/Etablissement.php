@@ -11,9 +11,9 @@ class Etablissement extends Model
 
     protected $fillable = ['nom', 'adresse', 'telephone', 'directeur_id'];
 
-    public function directeur()
+    public function directeurEtablissement()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(DirecteurEtablissement::class);
     }
 
     public function formateurs()

@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('directeurs', function (Blueprint $table) {
+        Schema::create('directeur_complexes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('utilisateur_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('utilisateur_id')
+                ->constrained('users')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -23,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('directeurs');
+        Schema::dropIfExists('directeur_complexes');
     }
 };

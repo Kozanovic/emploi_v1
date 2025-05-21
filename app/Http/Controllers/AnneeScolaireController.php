@@ -9,7 +9,7 @@ class AnneeScolaireController extends Controller
 {
     public function index()
     {
-        $annees = AnneeScolaire::with('etablissement')->get();
+        $annees = AnneeScolaire::all();
         return response()->json([
             'message' => 'Liste des années scolaires récupérée avec succès.',
             'data' => $annees,
@@ -22,7 +22,6 @@ class AnneeScolaireController extends Controller
             'nom' => 'required|string',
             'date_debut' => 'required|date',
             'date_fin' => 'required|date|after:date_debut',
-            'etablissement_id' => 'required|exists:etablissements,id',
         ]);
 
         $annee = AnneeScolaire::create($validated);
@@ -35,7 +34,7 @@ class AnneeScolaireController extends Controller
 
     public function show($id)
     {
-        $annee = AnneeScolaire::with('etablissement')->findOrFail($id);
+        $annee = AnneeScolaire::findOrFail($id);
         return response()->json([
             'message' => 'Année scolaire récupérée avec succès.',
             'data' => $annee,
@@ -49,14 +48,13 @@ class AnneeScolaireController extends Controller
             'nom' => 'sometimes|required|string',
             'date_debut' => 'sometimes|required|date',
             'date_fin' => 'sometimes|required|date|after:date_debut',
-            'etablissement_id' => 'sometimes|required|exists:etablissements,id',
         ]);
 
         $annee->update($validated);
 
         return response()->json([
             'message' => 'Année scolaire mise à jour.',
-            'data' => $annee->fresh('etablissement')
+            'data' => $annee,
         ], 200);
     }
 

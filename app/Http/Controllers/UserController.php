@@ -18,7 +18,10 @@ class UserController extends Controller
     {
         $utilisateurs = User::all();
         $roles = [
-            'Directeur',
+            'DirecteurSuper',
+            'DirecteurComplexe',
+            'DirecteurRegional',
+            'DirecteurEtablissement',
             'Formateur',
         ];
         return response()->json([
@@ -49,7 +52,7 @@ class UserController extends Controller
             'nom' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:users,email,' . $id,
             'password' => 'sometimes|required|string|min:8',
-            'role' => 'sometimes|required|in:Directeur,Formateur',
+            'role' => 'sometimes|required|in:DirecteurSuper,DirecteurComplexe,DirecteurRegional,DirecteurEtablissement,Formateur',
         ]);
 
         $utilisateur = User::findOrFail($id);
@@ -86,7 +89,7 @@ class UserController extends Controller
             'nom' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
-            'role' => 'required|in:Directeur,Formateur',
+            'role' => 'required|in:DirecteurSuper,DirecteurComplexe,DirecteurRegional,DirecteurEtablissement,Formateur',
         ]);
 
         $utilisateur = User::create([

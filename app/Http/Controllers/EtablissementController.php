@@ -12,7 +12,7 @@ class EtablissementController extends Controller
      */
     public function index()
     {
-        $etablissements = Etablissement::with(['directeur'])->get();
+        $etablissements = Etablissement::with(['directeurEtablissement'])->get();
         return response()->json([
             'message' => 'Liste des établissements récupérée avec succès',
             'data' => $etablissements,
@@ -28,14 +28,14 @@ class EtablissementController extends Controller
             'nom' => 'required|string|max:255',
             'adresse' => 'required|string',
             'telephone' => 'required|string',
-            'directeur_id' => 'required|exists:utilisateurs,id'
+            'directeur_regional_id' => 'required|exists:users,id'
         ]);
 
         $etablissement = Etablissement::create($data);
 
         return response()->json([
             'message' => 'Etablissement créé avec succès',
-            'data' => $etablissement->load(['directeur']),
+            'data' => $etablissement->load(['directeurEtablissement']),
         ], 201);
     }
 
@@ -46,7 +46,7 @@ class EtablissementController extends Controller
     {
         return response()->json([
             'message' => 'Etablissement récupéré avec succès',
-            'data' => $etablissement->load(['directeur']),
+            'data' => $etablissement->load(['directeurEtablissement']),
         ]);
     }
 
@@ -59,14 +59,14 @@ class EtablissementController extends Controller
             'nom' => 'sometimes|string|max:255',
             'adresse' => 'sometimes|string',
             'telephone' => 'sometimes|string',
-            'directeur_id' => 'sometimes|exists:utilisateurs,id'
+            'directeur_regional_id' => 'sometimes|exists:users,id'
         ]);
 
         $etablissement->update($data);
 
         return response()->json([
             'message' => 'Etablissement mis à jour avec succès',
-            'data' => $etablissement->fresh('directeur'),
+            'data' => $etablissement->fresh('directeurEtablissement'),
         ]);
     }
 

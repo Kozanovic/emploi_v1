@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Etablissement;
-use App\Models\Directeur;
+use App\Models\DirecteurEtablissement;
 use App\Models\User as Utilisateur;
 
 class EtablissementFactory extends Factory
@@ -14,10 +14,10 @@ class EtablissementFactory extends Factory
     public function definition()
     {
         // Ensure there is a directeur user
-        $user = Utilisateur::where('role', 'directeur')->inRandomOrder()->first();
+        $user = Utilisateur::where('role', 'DirecteurEtablissement')->inRandomOrder()->first();
 
         // Create Directeur if not already created
-        $directeur = Directeur::firstOrCreate(
+        $directeur = DirecteurEtablissement::firstOrCreate(
             ['utilisateur_id' => $user->id],
             ['created_at' => now(), 'updated_at' => now()]
         );
@@ -26,7 +26,7 @@ class EtablissementFactory extends Factory
             'nom' => $this->faker->company(),
             'adresse' => $this->faker->address(),
             'telephone' => $this->faker->phoneNumber(),
-            'directeur_id' => $directeur->id,
+            'directeur_etablissement_id' => $directeur->id,
         ];
     }
 }

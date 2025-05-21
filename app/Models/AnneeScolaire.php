@@ -9,13 +9,9 @@ class AnneeScolaire extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nom', 'date_debut', 'date_fin', 'etablissement_id'];
+    protected $fillable = ['nom', 'date_debut', 'date_fin'];
 
-    public function etablissement()
-    {
-        return $this->belongsTo(Etablissement::class);
-    }
-
+    
     public function semaines()
     {
         return $this->hasMany(Semaine::class);
