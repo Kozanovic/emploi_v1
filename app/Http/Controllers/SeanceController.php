@@ -4,12 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Seance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class SeanceController extends Controller
 {
     public function index()
     {
         $seances = Seance::with(['semaine', 'salle', 'module', 'formateur', 'groupe'])->get();
+        // Vérifier si l'utilisateur a le droit de voir la liste des séances
+        $currentUser = Auth::user();
+        if(!Gate::forUser($currentUser)->allows('view', Seance::class)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir la liste des séances.",
+            ], 403);
+        }
         return response()->json([
             'message' => 'Liste des séances récupérée avec succès.',
             'data' => $seances,
@@ -31,6 +40,13 @@ class SeanceController extends Controller
             'groupe_id' => 'required|exists:groupes,id',
         ]);
 
+        // Vérifier si l'utilisateur a le droit de créer une séance
+        $currentUser = Auth::user();
+        if(!Gate::forUser($currentUser)->allows('create', Seance::class)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de créer une séance.",
+            ], 403);
+        }
         $seance = Seance::create($validated);
 
         return response()->json([
@@ -42,7 +58,13 @@ class SeanceController extends Controller
     public function show($id)
     {
         $seance = Seance::with(['semaine', 'salle', 'module', 'formateur', 'groupe'])->findOrFail($id);
-
+        // Vérifier si l'utilisateur a le droit de voir une séance
+        $currentUser = Auth::user();
+        if(!Gate::forUser($currentUser)->allows('viewAny', $seance)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir cette séance.",
+            ], 403);
+        }
         return response()->json([
             'message' => 'Séance récupérée avec succès.',
             'data' => $seance,
@@ -65,6 +87,13 @@ class SeanceController extends Controller
             'formateur_id' => 'sometimes|required|exists:formateurs,id',
             'groupe_id' => 'sometimes|required|exists:groupes,id',
         ]);
+        // Vérifier si l'utilisateur a le droit de mettre à jour une séance
+        $currentUser = Auth::user();
+        if(!Gate::forUser($currentUser)->allows('update', $seance)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de mettre à jour cette séance.",
+            ], 403);
+        }
 
         $seance->update($validated);
 
@@ -77,6 +106,13 @@ class SeanceController extends Controller
     public function destroy($id)
     {
         $seance = Seance::findOrFail($id);
+        // Vérifier si l'utilisateur a le droit de supprimer une séance
+        $currentUser = Auth::user();
+        if(!Gate::forUser($currentUser)->allows('delete', $seance)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de supprimer cette séance.",
+            ], 403);
+        }
         $seance->delete();
 
         return response()->json([

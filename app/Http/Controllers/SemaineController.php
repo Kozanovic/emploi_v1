@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Semaine;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class SemaineController extends Controller
@@ -10,6 +12,13 @@ class SemaineController extends Controller
     public function index()
     {
         $semaines = Semaine::with(['anneeScolaire'])->get();
+        // Vérifier si l'utilisateur a le droit de voir la liste des modules
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('view', Semaine::class)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir la liste des semaines.",
+            ], 403);
+        }
         return response()->json([
             'message' => 'Liste des semaines récupérée avec succès.',
             'data' => $semaines,
@@ -24,6 +33,13 @@ class SemaineController extends Controller
             'date_fin' => 'required|date|after_or_equal:date_debut',
             'annee_scolaire_id' => 'required|exists:annee_scolaires,id',
         ]);
+        // Vérifier si l'utilisateur a le droit de créer un module
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('create', Semaine::class)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de créer une semaine.",
+            ], 403);
+        }
 
         $semaine = Semaine::create($validated);
 
@@ -36,6 +52,13 @@ class SemaineController extends Controller
     public function show($id)
     {
         $semaine = Semaine::with(['anneeScolaire'])->findOrFail($id);
+        // Vérifier si l'utilisateur a le droit de voir les détails d'un module
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('viewAny', $semaine)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir les détails de cette semaine.",
+            ], 403);
+        }
 
         return response()->json([
             'message' => 'Semaine récupérée avec succès.',
@@ -53,6 +76,13 @@ class SemaineController extends Controller
             'date_fin' => 'sometimes|required|date|after_or_equal:date_debut',
             'annee_scolaire_id' => 'sometimes|required|exists:annee_scolaires,id',
         ]);
+        // Vérifier si l'utilisateur a le droit de mettre à jour un module
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('update', Semaine::class)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de mettre à jour cette semaine.",
+            ], 403);
+        }
 
         $semaine->update($validated);
 
@@ -65,6 +95,13 @@ class SemaineController extends Controller
     public function destroy($id)
     {
         $semaine = Semaine::findOrFail($id);
+        // Vérifier si l'utilisateur a le droit de supprimer un module
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('delete', $semaine)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de supprimer cette semaine.",
+            ], 403);
+        }
         $semaine->delete();
 
         return response()->json([

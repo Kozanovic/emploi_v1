@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Salle;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class SalleController extends Controller
 {
@@ -11,6 +13,13 @@ class SalleController extends Controller
     {
 
         $salles = Salle::with(['etablissement'])->get();
+        // Vérifier si l'utilisateur a le droit de voir la liste des salles
+        $currentUser = Auth::user();
+        if(!Gate::forUser($currentUser)->allows('view', Salle::class)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir la liste des salles.",
+            ], 403);
+        }
         return response()->json([
             'message' => 'Liste des salles récupérée avec succès.',
             'data' => $salles,
@@ -25,6 +34,13 @@ class SalleController extends Controller
             'type' => 'required|in:Salle,Atelier',
             'etablissement_id' => 'required|exists:etablissements,id',
         ]);
+        // Vérifier si l'utilisateur a le droit de créer une salle
+        $currentUser = Auth::user();
+        if(!Gate::forUser($currentUser)->allows('create', Salle::class)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de créer une salle.",
+            ], 403);
+        }
 
         $salle = Salle::create($validated);
 
@@ -37,6 +53,13 @@ class SalleController extends Controller
     public function show($id)
     {
         $salle = Salle::with('etablissement')->findOrFail($id);
+        // Vérifier si l'utilisateur a le droit de voir les détails d'une salle
+        $currentUser = Auth::user();
+        if(!Gate::forUser($currentUser)->allows('viewAny', $salle)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir les détails de cette salle.",
+            ], 403);
+        }
         return response()->json([
             'message' => 'Salle récupérée avec succès.',
             'data' => $salle,
@@ -46,13 +69,19 @@ class SalleController extends Controller
     public function update(Request $request, $id)
     {
         $salle = Salle::findOrFail($id);
-
         $validated = $request->validate([
             'nom' => 'sometimes|required|string',
             'capacite' => 'sometimes|required|integer|min:1',
             'type' => 'sometimes|required|in:Salle,Atelier',
             'etablissement_id' => 'sometimes|required|exists:etablissements,id',
         ]);
+        // Vérifier si l'utilisateur a le droit de mettre à jour une salle
+        $currentUser = Auth::user();
+        if(!Gate::forUser($currentUser)->allows('update', $salle)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de mettre à jour cette salle.",
+            ], 403);
+        }
 
         $salle->update($validated);
 
@@ -65,6 +94,13 @@ class SalleController extends Controller
     public function destroy($id)
     {
         $salle = Salle::findOrFail($id);
+        // Vérifier si l'utilisateur a le droit de supprimer une salle
+        $currentUser = Auth::user();
+        if(!Gate::forUser($currentUser)->allows('delete', $salle)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de supprimer cette salle.",
+            ], 403);
+        }
         $salle->delete();
 
         return response()->json([

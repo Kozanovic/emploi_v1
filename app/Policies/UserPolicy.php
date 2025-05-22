@@ -52,4 +52,19 @@ class UserPolicy
             return $this->create($authUser, $role);
         });
     }
+    public function viewAny(User $authUser): bool
+    {
+        // Vérifier si l'utilisateur a le droit de voir la liste des utilisateurs
+        return in_array($authUser->role, ['DirecteurSuper', 'DirecteurRegional', 'DirecteurComplexe', 'DirecteurEtablissement', 'Formateur']);
+    }
+    public function view(User $authUser, int $userId): bool
+    {
+        // Vérifier si l'utilisateur a le droit de voir les détails de l'utilisateur
+        return in_array($authUser->role, ['DirecteurSuper', 'DirecteurRegional', 'DirecteurComplexe', 'DirecteurEtablissement', 'Formateur']);
+    }
+    public function delete(User $authUser, int $userId): bool
+    {
+        // Vérifier si l'utilisateur a le droit de supprimer l'utilisateur
+        return in_array($authUser->role, ['DirecteurSuper', 'DirecteurRegional', 'DirecteurComplexe']);
+    }
 }

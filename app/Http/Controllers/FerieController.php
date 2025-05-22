@@ -4,12 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Ferie;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class FerieController extends Controller
 {
     public function index()
     {
         $feries = Ferie::all();
+        // Vérifier si l'utilisateur a le droit de voir la liste des jours fériés
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('view', Ferie::class)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir la liste des jours fériés.",
+            ], 403);
+        }
         return response()->json([
             'message' => 'Liste des jours fériés récupérée avec succès.',
             'data' => $feries,
@@ -23,6 +32,13 @@ class FerieController extends Controller
             'date_debut' => 'required|date',
             'date_fin' => 'required|date|after_or_equal:date_debut',
         ]);
+        // Vérifier si l'utilisateur a le droit de créer un jour férié
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('create', Ferie::class)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de créer un jour férié.",
+            ], 403);
+        }
 
         $ferie = Ferie::create($validated);
 
@@ -35,6 +51,13 @@ class FerieController extends Controller
     public function show($id)
     {
         $ferie = Ferie::findOrFail($id);
+        // Vérifier si l'utilisateur a le droit de voir un jour férié
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('view', $ferie)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir ce jour férié.",
+            ], 403);
+        }
         return response()->json([
             'message' => 'Jour férié récupéré avec succès.',
             'data' => $ferie,
@@ -44,6 +67,13 @@ class FerieController extends Controller
     public function update(Request $request, $id)
     {
         $ferie = Ferie::findOrFail($id);
+        // Vérifier si l'utilisateur a le droit de mettre à jour un jour férié
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('update', $ferie)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de mettre à jour ce jour férié.",
+            ], 403);
+        }
         $validated = $request->validate([
             'nom' => 'sometimes|required|string',
             'date_debut' => 'sometimes|required|date',
@@ -61,6 +91,13 @@ class FerieController extends Controller
     public function destroy($id)
     {
         $ferie = Ferie::findOrFail($id);
+        // Vérifier si l'utilisateur a le droit de supprimer un jour férié
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('delete', $ferie)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de supprimer ce jour férié.",
+            ], 403);
+        }
         $ferie->delete();
 
         return response()->json([

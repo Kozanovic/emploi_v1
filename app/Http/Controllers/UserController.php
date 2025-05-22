@@ -23,7 +23,12 @@ class UserController extends Controller
         $utilisateurs = User::all();
         $user = Auth::user();
         $policy = new UserPolicy();
-
+        // Vérifier si l'utilisateur a le droit de voir la liste des utilisateurs
+        if (!Gate::forUser($user)->allows('viewAny', User::class)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir la liste des utilisateurs.",
+            ], 403);
+        }
         return response()->json([
             'message' => 'Liste des utilisateurs récupérée avec succès.',
             'data' => $utilisateurs,
@@ -35,6 +40,14 @@ class UserController extends Controller
      */
     public function show($id)
     {
+        // Vérifier si l'utilisateur a le droit de voir les détails de l'utilisateur
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('view', $id)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir les détails de cet utilisateur.",
+            ], 403);
+        }
+
         $utilisateur = User::findOrFail($id);
         return response()->json([
             'message' => 'Utilisateur trouvé avec succès.',
@@ -82,6 +95,13 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
+        // Vérifier si l'utilisateur a le droit de supprimer l'utilisateur
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('delete', $id)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de supprimer cet utilisateur.",
+            ], 403);
+        }
         $utilisateur = User::findOrFail($id);
         $utilisateur->delete();
 
