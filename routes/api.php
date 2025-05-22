@@ -45,7 +45,7 @@ use App\Http\Middleware\AuthJwtMiddlewaer;
 
 Route::post('/login', [UserController::class, 'login']);
 
-Route::middleware([AuthJwtMiddlewaer::class, 'can:manage-resources'])->group(function () {
+Route::middleware([AuthJwtMiddlewaer::class])->group(function () {
     Route::get('/utilisateurs', [UserController::class, 'index']);
     Route::post('/register', [UserController::class, 'register']);
     Route::get('/utilisateurs/{id}', [UserController::class, 'show']);
@@ -54,31 +54,31 @@ Route::middleware([AuthJwtMiddlewaer::class, 'can:manage-resources'])->group(fun
 
     Route::apiResources([
         // Tables principales
-        'directions-regionales' => DirectionRegionalController::class,
-        'complexes' => ComplexeController::class,
-        'etablissements' => EtablissementController::class,
+        'directions-regionales' => DirectionRegionalController::class,//1 - Directeur_super
+        'complexes' => ComplexeController::class,//2 - Directeur_Régional
+        'etablissements' => EtablissementController::class,//3- Directeur_complexe
 
         // Tables de relations utilisateurs
-        'directeur-etablissements' => directeurEtablissementController::class,
-        'directeurs-regionales' => directeurRegionalController::class,
         'directeurs-super' => directeurSuperController::class,
+        'directeurs-regionales' => directeurRegionalController::class,
         'directeurs-complexes' => directeurComplexeController::class,
+        'directeur-etablissements' => directeurEtablissementController::class,
         'formateurs' => FormateurController::class,
 
         // Tables métiers
-        'secteurs' => SecteurController::class,
-        'filieres' => FiliereController::class,
-        'groupes' => GroupeController::class,
-        'modules' => ModuleController::class,
+        'secteurs' => SecteurController::class,//1 - Directeur_super
+        'filieres' => FiliereController::class,//1 - Directeur_super
+        'groupes' => GroupeController::class,//4 - Directeur_établissement
+        'modules' => ModuleController::class,//4 - Directeur_établissement
 
         // Tables de planification
-        'annees-scolaires' => AnneeScolaireController::class,
-        'feries' => FerieController::class,
-        'semaines' => SemaineController::class,
+        'annees-scolaires' => AnneeScolaireController::class,//1 - Directeur_super
+        'feries' => FerieController::class,//1 - Directeur_super
+        'semaines' => SemaineController::class,//4 - Directeur_établissement
 
         // Tables de gestion des ressources
-        'salles' => SalleController::class,
-        'seances' => SeanceController::class,
+        'salles' => SalleController::class,//4 - Directeur_établissement
+        'seances' => SeanceController::class,//4 - Directeur_établissement
 
         // Tables de jointure/pivot
         'semaine-ferie' => SemFerController::class,

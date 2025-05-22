@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DirectionRegional;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class DirectionRegionalController extends Controller
 {
@@ -12,6 +13,11 @@ class DirectionRegionalController extends Controller
      */
     public function index()
     {
+        // Vérification des autorisations
+        if (!Gate::allows('view', DirectionRegional::class)) {
+            return response()->json(['message' => 'Non autorisé à voir la liste des directions régionales.'], 403);
+        }
+        // Récupération de toutes les directions régionales
         $directionRegionals = DirectionRegional::all();
         return response()->json([
             'message' => 'Liste des directions régionales récupérée avec succès',
@@ -38,6 +44,12 @@ class DirectionRegionalController extends Controller
             'telephone' => 'required|string|max:255',
         ]);
 
+        // Vérification des autorisations
+        if (!Gate::allows('create', DirectionRegional::class)) {
+            return response()->json(['message' => 'Non autorisé à créer une direction régionale.'], 403);
+        }
+        // Création de la direction régionale
+
         $directionRegional = DirectionRegional::create($request->all());
         return response()->json([
             'message' => 'Direction régionale créée avec succès',
@@ -50,6 +62,11 @@ class DirectionRegionalController extends Controller
      */
     public function show($id)
     {
+        // Vérification des autorisations
+        if (!Gate::allows('view', DirectionRegional::class)) {
+            return response()->json(['message' => 'Non autorisé à voir la direction régionale.'], 403);
+        }
+        // Récupération de la direction régionale par son ID
         $directionRegional = DirectionRegional::findOrFail($id);
         return response()->json([
             'message' => 'Direction régionale récupérée avec succès',
@@ -70,6 +87,10 @@ class DirectionRegionalController extends Controller
      */
     public function update(Request $request, DirectionRegional $directionRegional)
     {
+        // Vérification des autorisations
+        if (!Gate::allows('update', $directionRegional)) {
+            return response()->json(['message' => 'Non autorisé à mettre à jour la direction régionale.'], 403);
+        }
         $request->validate([
             'nom' => 'required|string|max:255',
             'adresse' => 'required|string|max:255',
@@ -89,6 +110,10 @@ class DirectionRegionalController extends Controller
      */
     public function destroy(DirectionRegional $directionRegional)
     {
+        // Vérification des autorisations
+        if (!Gate::allows('delete', $directionRegional)) {
+            return response()->json(['message' => 'Non autorisé à supprimer la direction régionale.'], 403);
+        }
         $directionRegional->delete();
 
         return response()->json([

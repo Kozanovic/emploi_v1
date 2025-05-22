@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Complexe;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ComplexeController extends Controller
 {
@@ -12,6 +13,10 @@ class ComplexeController extends Controller
      */
     public function index()
     {
+        // Vérification des autorisations
+        if (!Gate::allows('view', Complexe::class)) {
+            return response()->json(['message' => 'Non autorisé à voir la liste des complexes.'], 403);
+        }
         $complexes = Complexe::with('directionRegional')->get();
         return response()->json([
             'message' => 'Liste des complexes récupérée avec succès.',
@@ -36,6 +41,11 @@ class ComplexeController extends Controller
             'nom' => 'required|string|max:255',
             'direction_regional_id' => 'required|exists:direction_regionals,id'
         ]);
+        // Vérification des autorisations
+        if (!Gate::allows('create', Complexe::class)) {
+            return response()->json(['message' => 'Non autorisé à créer un complexe.'], 403);
+        }
+        // Création du complexe
         $complexe = Complexe::create($request->all());
 
         return response()->json([
@@ -49,6 +59,12 @@ class ComplexeController extends Controller
      */
     public function show($id)
     {
+        // Vérification des autorisations
+        if (!Gate::allows('view', Complexe::class)) {
+            return response()->json(['message' => 'Non autorisé à voir le complexe.'], 403);
+        }
+        // Récupération du complexe
+        // Vérification de l'existence du complexe
         $complexe = Complexe::findOrFail($id);
         $complexe->load('directionRegional');
         return response()->json([
@@ -74,6 +90,10 @@ class ComplexeController extends Controller
             'nom' => 'required|string|max:255',
             'direction_regional_id' => 'required|exists:direction_regionals,id'
         ]);
+        // Vérification des autorisations
+        if (!Gate::allows('update', $complexe)) {
+            return response()->json(['message' => 'Non autorisé à mettre à jour le complexe.'], 403);
+        }
 
         $complexe->update($request->all());
 
@@ -88,6 +108,10 @@ class ComplexeController extends Controller
      */
     public function destroy(Complexe $complexe)
     {
+        // Vérification des autorisations
+        if (!Gate::allows('delete', $complexe)) {
+            return response()->json(['message' => 'Non autorisé à supprimer le complexe.'], 403);
+        }
         $complexe->delete();
 
         return response()->json([

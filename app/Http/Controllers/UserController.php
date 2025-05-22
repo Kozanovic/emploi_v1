@@ -8,6 +8,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
+use App\Policies\UserPolicy;
+
 
 class UserController extends Controller
 {
@@ -17,17 +21,13 @@ class UserController extends Controller
     public function index()
     {
         $utilisateurs = User::all();
-        $roles = [
-            'DirecteurSuper',
-            'DirecteurComplexe',
-            'DirecteurRegional',
-            'DirecteurEtablissement',
-            'Formateur',
-        ];
+        $user = Auth::user();
+        $policy = new UserPolicy();
+
         return response()->json([
             'message' => 'Liste des utilisateurs récupérée avec succès.',
             'data' => $utilisateurs,
-            'roles' => $roles
+            'creatable_roles' => $policy->creatableRoles($user) // Liste dynamique
         ]);
     }
     /**
@@ -54,6 +54,14 @@ class UserController extends Controller
             'password' => 'sometimes|required|string|min:8',
             'role' => 'sometimes|required|in:DirecteurSuper,DirecteurComplexe,DirecteurRegional,DirecteurEtablissement,Formateur',
         ]);
+        // Vérifier si l'utilisateur a le droit de mettre à jour l'utilisateur
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('update', $id)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de mettre à jour cet utilisateur.",
+            ], 403);
+        }
+        // Vérifier si l'utilisateur a le droit de mettre à jour le rôle
 
         $utilisateur = User::findOrFail($id);
         $utilisateur->update([
@@ -92,6 +100,13 @@ class UserController extends Controller
             'role' => 'required|in:DirecteurSuper,DirecteurComplexe,DirecteurRegional,DirecteurEtablissement,Formateur',
         ]);
 
+        // Vérifier si l'utilisateur a le droit de créer un utilisateur avec le rôle spécifié
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('create', [User::class, $validated['role']])) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de créer un utilisateur avec le rôle : " . $validated['role'],
+            ], 403);
+        }
         $utilisateur = User::create([
             'nom' => $validated['nom'],
             'email' => $validated['email'],
