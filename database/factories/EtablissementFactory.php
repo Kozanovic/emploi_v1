@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Complexe;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Etablissement;
 use App\Models\DirecteurEtablissement;
@@ -15,6 +16,7 @@ class EtablissementFactory extends Factory
     {
         // Ensure there is a directeur user
         $user = Utilisateur::where('role', 'DirecteurEtablissement')->inRandomOrder()->first();
+        $complexe = Complexe::inRandomOrder()->first();
 
         // Create Directeur if not already created
         $directeur = DirecteurEtablissement::firstOrCreate(
@@ -27,6 +29,7 @@ class EtablissementFactory extends Factory
             'adresse' => $this->faker->address(),
             'telephone' => $this->faker->phoneNumber(),
             'directeur_etablissement_id' => $directeur->id,
+            'complexe_id' => $complexe->id,
         ];
     }
 }
