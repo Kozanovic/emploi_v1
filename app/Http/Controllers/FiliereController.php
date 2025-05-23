@@ -11,7 +11,7 @@ class FiliereController extends Controller
 {
     public function index()
     {
-        $filieres = Filiere::all();
+        $filieres = Filiere::with('secteur')->get();
         // Vérifier si l'utilisateur a le droit de voir la liste des filières
         $currentUser = Auth::user();
         if (!Gate::forUser($currentUser)->allows('view', Filiere::class)) {
@@ -38,7 +38,7 @@ class FiliereController extends Controller
             ], 403);
         }
 
-        $filiere = Filiere::create($validated);
+        $filiere = Filiere::create($validated)->fresh(['secteur']);
 
         return response()->json([
             'message' => 'Filière créée avec succès.',
@@ -48,7 +48,7 @@ class FiliereController extends Controller
 
     public function show($id)
     {
-        $filiere = Filiere::findOrFail($id);
+        $filiere = Filiere::with('secteur')->findOrFail($id);
         // Vérifier si l'utilisateur a le droit de voir une filière
         $currentUser = Auth::user();
         if (!Gate::forUser($currentUser)->allows('viewAny', $filiere)) {
@@ -64,7 +64,7 @@ class FiliereController extends Controller
 
     public function update(Request $request, $id)
     {
-        $filiere = Filiere::findOrFail($id);
+        $filiere = Filiere::with('secteur')->findOrFail($id);
 
         $validated = $request->validate([
             'nom' => 'sometimes|required|string|max:255',
@@ -79,6 +79,7 @@ class FiliereController extends Controller
         // Mettre à jour la filière
 
         $filiere->update($validated);
+        $filiere->load('secteur');
 
         return response()->json([
             'message' => 'Filière mise à jour avec succès.',

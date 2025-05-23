@@ -15,4 +15,8 @@ class Secteur extends Model
     {
         return $this->belongsToMany(Etablissement::class, 'sect_efps');
     }
+    public function filieres()
+    {
+        return $this->hasMany(Filiere::class);
+    }
 }

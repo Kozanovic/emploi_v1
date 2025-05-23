@@ -20,6 +20,10 @@ class Filiere extends Model
     {
         return $this->hasMany(Groupe::class);
     }
+    public function secteur()
+    {
+        return $this->belongsTo(Secteur::class);
+    }
 
     public function etablissements()
     {
