@@ -113,68 +113,29 @@ class GroupeController extends Controller
             'message' => 'Groupe supprimé avec succès.'
         ]);
     }
-    public function filtrerParSecteurEtFiliere(Request $request)
+    public function getGroupesBySecteur($secteurId)
     {
-        $user = Auth::user();
-
-        $etablissementId = $user->etablissement_id;
-
-        if (!$etablissementId) {
-            return response()->json(['message' => 'Aucun établissement associé à cet utilisateur.'], 403);
+        $currentUser = Auth::user();
+        // Vérifier si l'utilisateur a le droit de voir les groupes par secteur
+        if (!Gate::forUser($currentUser)->allows('viewAny', Groupe::class)) {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir les groupes par secteur.",
+            ], 403);
         }
-
-        $secteurs = SectEfp::where('etablissement_id', $etablissementId)->pluck('secteur_id');
-
-        $filieresOffertes = Offrir::where('etablissement_id', $etablissementId)->pluck('filiere_id');
-
-        if ($request->has('secteur_id')) {
-            $secteurId = $request->input('secteur_id');
-
-            if (!$secteurs->contains($secteurId)) {
-                return response()->json(['message' => 'Secteur non autorisé.'], 403);
-            }
-
-            $filieresOffertes = Filiere::whereIn('id', $filieresOffertes)
-                ->where('secteur_id', $secteurId)
-                ->pluck('id');
+        if (!$currentUser->directeurEtablissement || !$currentUser->directeurEtablissement->etablissement) {
+            return response()->json([
+                'message' => "établissement introuvable.",
+            ], 403);
         }
-
-        $groupes = Groupe::with(['filiere', 'etablissement'])
-            ->where('etablissement_id', $etablissementId)
-            ->whereIn('filiere_id', $filieresOffertes)
+        $etablissementId = $currentUser->directeurEtablissement->etablissement->id;
+        $groupes = Groupe::where('etablissement_id', $etablissementId)
+            ->whereHas('filiere', function ($query) use ($secteurId) {
+                // On filtre les groupes dont la filière a le secteur demandé
+                $query->where('secteur_id', $secteurId);
+            })
+            ->with(['filiere']) // Optionnel : inclure les données de la filière dans le résultat
             ->get();
 
-        return response()->json([
-            'message' => 'Groupes filtrés récupérés avec succès.',
-            'data' => $groupes
-        ]);
-    }
-    public function getGroupesByEtablissement()
-    {
-        // Vérifier si l'utilisateur a le droit de voir les groupes d'un établissement
-        $currentUser = Auth::user();
-        if (!Gate::forUser($currentUser)->allows('viewAny', Groupe::class)) {
-            return response()->json([
-                'message' => "Vous n'avez pas le droit de voir les groupes de cet établissement.",
-            ], 403);
-        }
-        $etablissementId = $currentUser->etablissement_id;
-        $groupes = Groupe::where('etablissement_id', $etablissementId)->with(['filiere', 'etablissement'])->get();
-        return response()->json([
-            'message' => 'Groupes récupérés avec succès.',
-            'data' => $groupes,
-        ]);
-    }
-    public function getGroupesByFiliere($id)
-    {
-        // Vérifier si l'utilisateur a le droit de voir les groupes d'une filière
-        $currentUser = Auth::user();
-        if (!Gate::forUser($currentUser)->allows('viewAny', Groupe::class)) {
-            return response()->json([
-                'message' => "Vous n'avez pas le droit de voir les groupes de cette filière.",
-            ], 403);
-        }
-        $groupes = Groupe::where('filiere_id', $id)->with(['filiere', 'etablissement'])->get();
         return response()->json([
             'message' => 'Groupes récupérés avec succès.',
             'data' => $groupes,

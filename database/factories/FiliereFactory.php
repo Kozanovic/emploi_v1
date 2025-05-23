@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Secteur;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,8 +17,10 @@ class FiliereFactory extends Factory
      */
     public function definition(): array
     {
+        $secteur = Secteur::inRandomOrder()->first();
         return [
-            'nom' => $this->faker->unique()->word()
+            'nom' => $this->faker->unique()->word(),
+            'secteur_id' => $secteur->id,
         ];
     }
 }

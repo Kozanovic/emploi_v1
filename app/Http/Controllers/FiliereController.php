@@ -29,6 +29,7 @@ class FiliereController extends Controller
     {
         $validated = $request->validate([
             'nom' => 'required|string|max:255',
+            'secteur_id' => 'required|exists:secteurs,id',
         ]);
         // Vérifier si l'utilisateur a le droit de créer une filière
         $currentUser = Auth::user();
@@ -68,6 +69,7 @@ class FiliereController extends Controller
 
         $validated = $request->validate([
             'nom' => 'sometimes|required|string|max:255',
+            'secteur_id' => 'sometimes|required|exists:secteurs,id',
         ]);
         // Vérifier si l'utilisateur a le droit de mettre à jour une filière
         $currentUser = Auth::user();

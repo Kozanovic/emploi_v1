@@ -15,4 +15,8 @@ class DirecteurEtablissement extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function etablissement()
+    {
+        return $this->hasOne(Etablissement::class);
+    }
 }

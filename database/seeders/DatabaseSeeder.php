@@ -36,7 +36,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        Utilisateur::factory()->create();
         Utilisateur::factory()->create([
             'nom' => 'mohammed',
             'email' => 'mohammed@gmail.com',
