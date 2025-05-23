@@ -15,6 +15,10 @@ class Complexe extends Model
     {
         return $this->belongsTo(DirectionRegional::class);
     }
+    public function etablissements()
+    {
+        return $this->hasMany(Etablissement::class);
+    }
     public function formateurs()
     {
         return $this->hasMany(Formateur::class);

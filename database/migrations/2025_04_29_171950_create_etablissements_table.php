@@ -19,6 +19,9 @@ return new class extends Migration
             $table->foreignId('directeur_etablissement_id')
                 ->constrained('directeur_etablissements')
                 ->onDelete('cascade');
+            $table->foreignId('complexe_id')
+                ->constrained('complexes')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }

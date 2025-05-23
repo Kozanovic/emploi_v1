@@ -16,6 +16,11 @@ class Etablissement extends Model
         return $this->belongsTo(DirecteurEtablissement::class);
     }
 
+    public function complexe()
+    {
+        return $this->belongsTo(Complexe::class);
+    }
+
     public function formateurs()
     {
         return $this->hasMany(Formateur::class);
