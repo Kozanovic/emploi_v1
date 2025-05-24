@@ -24,6 +24,6 @@ class DirectionRegionalPolicy
 
     public function view(User $user): bool
     {
-        return $user->estDirecteurSuper();
+        return $user->estDirecteurSuper() || $user->estDirecteurRegional();
     }
 }

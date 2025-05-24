@@ -68,7 +68,7 @@ class DatabaseSeeder extends Seeder
         ]);
         DirectionRegional::factory()->create();
         Complexe::factory()->create();
-        directeurEtablissement::factory()->create();
+        DirecteurEtablissement::factory()->create();
         DirecteurSuper::factory()->create();
         DirecteurComplexe::factory()->create();
         DirecteurRegional::factory()->create();
