@@ -60,11 +60,11 @@ Route::middleware([AuthJwtMiddlewaer::class])->group(function () {
         'etablissements' => EtablissementController::class, //3- Directeur_complexe ✅
 
         // Tables de relations utilisateurs
-        'directeurs-super' => directeurSuperController::class, //✅
-        'directeurs-regionales' => directeurRegionalController::class, //✅
-        'directeurs-complexes' => directeurComplexeController::class, //✅
-        'directeur-etablissements' => directeurEtablissementController::class, //✅
-        'formateurs' => FormateurController::class, //✅
+        'directeurs-super' => directeurSuperController::class, //✅ ymkn yssawb directeurRegional
+        'directeurs-regionales' => directeurRegionalController::class, //✅ ymkn yssawb formateur w directeurComplexe
+        'directeurs-complexes' => directeurComplexeController::class, //✅ ymkn yssawb directeurEtablissement
+        'directeur-etablissements' => directeurEtablissementController::class, //✅ maghaydir 7ta 9lwa 
+        'formateurs' => FormateurController::class, //✅ maghaydir 7ta 9lwa 
 
         // Tables métiers
         'secteurs' => SecteurController::class, //1 - Directeur_super ✅
@@ -78,8 +78,8 @@ Route::middleware([AuthJwtMiddlewaer::class])->group(function () {
         'semaines' => SemaineController::class, //4 - Directeur_établissement ✅
 
         // Tables de gestion des ressources
-        'salles' => SalleController::class, //4 - Directeur_établissement ❌
-        'seances' => SeanceController::class, //4 - Directeur_établissement ou Formateur(dans des cas spécifiques) ❌
+        'salles' => SalleController::class, //4 - Directeur_établissement ✅
+        'seances' => SeanceController::class, //4 - Directeur_établissement ou Formateur(dans des cas spécifiques) ✅
 
         // Tables de jointure/pivot
         'semaine-ferie' => SemFerController::class, // ❌

@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Formateur;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+
 
 class FormateurController extends Controller
 {
@@ -12,6 +15,13 @@ class FormateurController extends Controller
      */
     public function index()
     {
+        // Vérification de l'autorisation
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('view', Formateur::class)) {
+            return response()->json([
+                'message' => 'Vous n\'êtes pas autorisé à voir les formateurs.',
+            ], 403);
+        }
         $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])->get();
         return response()->json([
             'message' => 'Liste des formateurs récupérée avec succès',
@@ -33,6 +43,13 @@ class FormateurController extends Controller
             'complexe_id' => 'required|exists:complexes,id',
             'direction_regional_id' => 'required|exists:direction_regionals,id',
         ]);
+        // Vérification de l'autorisation
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('create', Formateur::class)) {
+            return response()->json([
+                'message' => 'Vous n\'êtes pas autorisé à créer un formateur.',
+            ], 403);
+        }
         $formateur = Formateur::create($validated);
 
         return response()->json([
@@ -46,8 +63,15 @@ class FormateurController extends Controller
      */
     public function show(Formateur $formateur)
     {
+        // Vérification de l'autorisation
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('viewAny', $formateur)) {
+            return response()->json([
+                'message' => 'Vous n\'êtes pas autorisé à voir ce formateur.',
+            ], 403);
+        }
         return response()->json([
-            'message'=>'details du formateur',
+            'message' => 'details du formateur',
             'data' => $formateur->load(['utilisateur', 'etablissement', 'complexe', 'direction_regional']),
         ]);
     }
@@ -60,11 +84,27 @@ class FormateurController extends Controller
         $validated = $request->validate([
             'specialite' => 'sometimes|required|string|max:255',
             'heures_hebdomadaire' => 'sometimes|required|integer|min:1',
+            'peut_gerer_seance' => 'required|boolean',
             'utilisateur_id' => 'sometimes|required|exists:utilisateurs,id',
             'etablissement_id' => 'sometimes|required|exists:etablissements,id',
             'complexe_id' => 'sometimes|required|exists:complexes,id',
             'direction_regional_id' => 'sometimes|required|exists:direction_regionals,id',
         ]);
+
+        // Vérification de l'autorisation
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('update', $formateur)) {
+            return response()->json([
+                'message' => 'Vous n\'êtes pas autorisé à mettre à jour ce formateur.',
+            ], 403);
+        }
+
+        //verifier si le formateur peut gerer une seance est vrai puis changer le role de l'utilisateur a DirecteurEtablissement
+        if ($validated['peut_gerer_seance'] == true) {
+            $formateur->utilisateur->update(['role' => 'DirecteurEtablissement']);
+        } else {
+            $formateur->utilisateur->update(['role' => 'Formateur']);
+        }
         $formateur->update($validated);
 
         return response()->json([
@@ -77,6 +117,13 @@ class FormateurController extends Controller
      */
     public function destroy(Formateur $formateur)
     {
+        // Vérification de l'autorisation
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('delete', $formateur)) {
+            return response()->json([
+                'message' => 'Vous n\'êtes pas autorisé à supprimer ce formateur.',
+            ], 403);
+        }
         $formateur->delete();
         return response()->json([
             'message' => 'Formateur supprimé avec succès.'

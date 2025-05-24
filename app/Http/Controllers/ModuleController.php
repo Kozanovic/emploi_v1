@@ -33,7 +33,6 @@ class ModuleController extends Controller
             'masse_horaire_distanciel' => 'required|integer',
             'type_efm' => 'required|in:Regional,Local',
             'semestre' => 'required|in:S1,S2',
-            'annee_formation' => 'required',
             'filiere_id' => 'required|exists:filieres,id',
         ]);
 
@@ -78,7 +77,6 @@ class ModuleController extends Controller
             'masse_horaire_distanciel' => 'sometimes|required|integer',
             'type_efm' => 'required|in:Regional,Local',
             'semestre' => 'sometimes|required|in:S1,S2',
-            'annee_formation' => 'sometimes|required',
             'filiere_id' => 'sometimes|required|exists:filieres,id',
         ]);
         // Vérifier si l'utilisateur a le droit de mettre à jour un module

@@ -16,22 +16,22 @@ class FilierePolicy
     public function create(User $user): bool
     {
         // Seul le DirecteurSuper peut créer une filière
-        return $user->estDirecteurSuper();
+        return $user->estDirecteurSuper() || $user->estDirecteurRegional();
     }
     public function update(User $user): bool
     {
-        return $user->estDirecteurSuper();
+        return $user->estDirecteurSuper() || $user->estDirecteurRegional();
     }
     public function delete(User $user): bool
     {
-        return $user->estDirecteurSuper();
+        return $user->estDirecteurSuper() || $user->estDirecteurRegional();
     }
     public function view(User $user): bool
     {
-        return $user->estDirecteurSuper();
+        return $user->estDirecteurSuper() || $user->estDirecteurRegional();
     }
     public function viewAny(User $user): bool
     {
-        return $user->estDirecteurSuper();
+        return $user->estDirecteurSuper() || $user->estDirecteurRegional();
     }
 }

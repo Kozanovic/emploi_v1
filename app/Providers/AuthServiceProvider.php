@@ -31,6 +31,8 @@ use App\Models\Salle;
 use App\Policies\SallePolicy;
 use App\Models\Seance;
 use App\Policies\SeancePolicy;
+use App\Models\Formateur;
+use App\Policies\FormateurPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -55,6 +57,7 @@ class AuthServiceProvider extends ServiceProvider
         Semaine::class => SemainePolicy::class,
         Salle::class => SallePolicy::class,
         Seance::class => SeancePolicy::class,
+        Formateur::class => FormateurPolicy::class,
     ];
 
     /**

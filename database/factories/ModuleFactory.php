@@ -25,7 +25,6 @@ class ModuleFactory extends Factory
             'masse_horaire_distanciel' => $this->faker->numberBetween(10, 40),
             'type_efm' => $this->faker->randomElement(['Regional', 'Local']),
             'semestre' => $this->faker->randomElement(['S1', 'S2']),
-            'annee_formation' => $this->faker->year(),
             'filiere_id' => $filiere->id,
         ];
     }

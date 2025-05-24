@@ -15,7 +15,6 @@ class Module extends Model
         'masse_horaire_distanciel',
         'type_efm',
         'semestre',
-        'annee_formation',
         'filiere_id'
     ];
 

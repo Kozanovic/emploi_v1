@@ -18,7 +18,6 @@ return new class extends Migration
             $table->integer('masse_horaire_distanciel');
             $table->enum('type_efm',['Regional','Local']);
             $table->enum('semestre', ['S1', 'S2']);
-            $table->string('annee_formation');
             $table->foreignId('filiere_id')->constrained('filieres')->onDelete('cascade');
             $table->timestamps();
         });
