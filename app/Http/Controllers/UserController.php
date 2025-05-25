@@ -166,4 +166,9 @@ class UserController extends Controller
             'token' => $token
         ], 200); // 200 signifie succès
     }
+    public function logout(Request $request)
+    {
+        JWTAuth::invalidate(JWTAuth::getToken());
+        return response()->json(['message' => 'Déconnexion réussie.']);
+    }
 }
