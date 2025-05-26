@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Etablissement;
 use App\Models\Salle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,9 +21,16 @@ class SalleController extends Controller
                 'message' => "Vous n'avez pas le droit de voir la liste des salles.",
             ], 403);
         }
+        $etablissements = Etablissement::where('id', $currentUser->etablissement_id)->first();
+        if (!$etablissements) {
+            return response()->json([
+                'message' => "établissement introuvable.",
+            ], 404);
+        }
         return response()->json([
             'message' => 'Liste des salles récupérée avec succès.',
             'data' => $salles,
+            'etablissement' => $etablissements,
         ], 200);
     }
 

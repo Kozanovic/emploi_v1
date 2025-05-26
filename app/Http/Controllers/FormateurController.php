@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DirectionRegional;
+use App\Models\Etablissement;
 use App\Models\Formateur;
+use App\Models\Secteur;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -23,9 +27,17 @@ class FormateurController extends Controller
             ], 403);
         }
         $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])->get();
+        $secteurs = Secteur::all();
+        $directionRegionales = DirectionRegional::all();
+        $etablissements = Etablissement::where('direction_regional_id', $currentUser->direction_regional_id)->get();
+        $utilisateurs = User::where('role', 'Formateur')->get();
         return response()->json([
             'message' => 'Liste des formateurs récupérée avec succès',
             'data' => $formateurs,
+            'secteurs' => $secteurs,
+            'direction_regionales' => $directionRegionales,
+            'etablissements' => $etablissements,
+            'utilisateurs' => $utilisateurs,
         ]);
     }
 

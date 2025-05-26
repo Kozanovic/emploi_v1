@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Filiere;
 use App\Models\Module;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -19,9 +20,11 @@ class ModuleController extends Controller
                 'message' => "Vous n'avez pas le droit de voir la liste des modules.",
             ], 403);
         }
+        $filieres = Filiere::with(['secteur'])->get();
         return response()->json([
             'message' => 'Liste des modules récupérée avec succès.',
             'data' => $modules,
+            'filieres' => $filieres,
         ]);
     }
 

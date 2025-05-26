@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Etablissement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use App\Models\User;
+use App\Models\Complexe;
 
 class EtablissementController extends Controller
 {
@@ -14,14 +17,21 @@ class EtablissementController extends Controller
     public function index()
     {
         // Vérification des autorisations
-        if (!Gate::allows('view', Etablissement::class)) {
+        $currentUser = Auth::user();
+        if (!Gate::forUser($currentUser)->allows('view', Etablissement::class)) {
             return response()->json(['message' => 'Non autorisé à voir la liste des établissements.'], 403);
         }
         // Récupération de tous les établissements
         $etablissements = Etablissement::with(['directeurEtablissement'])->get();
+        $directeurEtablissement = Etablissement::where('directeur_etablissement_id', $currentUser->id)->get();
+        $utilisateurs = User::where('role', 'DirecteurEtablissement')->get();
+        $complexes = complexe::all();
         return response()->json([
             'message' => 'Liste des établissements récupérée avec succès',
             'data' => $etablissements,
+            'directeurEtablissement' => $directeurEtablissement,
+            'utilisateurs' => $utilisateurs,
+            'complexes' => $complexes,
         ]);
     }
 
@@ -34,7 +44,8 @@ class EtablissementController extends Controller
             'nom' => 'required|string|max:255',
             'adresse' => 'required|string',
             'telephone' => 'required|string',
-            'directeur_regional_id' => 'required|exists:users,id'
+            'directeur_etablissement_id' => 'required',
+            'complexe_id' => 'required|exists:complexes,id',
         ]);
         // Vérification des autorisations
         if (!Gate::allows('create', Etablissement::class)) {
@@ -75,7 +86,8 @@ class EtablissementController extends Controller
             'nom' => 'sometimes|string|max:255',
             'adresse' => 'sometimes|string',
             'telephone' => 'sometimes|string',
-            'directeur_regional_id' => 'sometimes|exists:users,id'
+            'directeur_etablissement_id' => 'sometimes|required',
+            'complexe_id' => 'sometimes|exists:complexes,id',
         ]);
         // Vérification des autorisations
         if (!Gate::allows('update', $etablissement)) {

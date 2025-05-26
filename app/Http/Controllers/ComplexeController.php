@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Complexe;
+use App\Models\DirectionRegional;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -18,9 +19,11 @@ class ComplexeController extends Controller
             return response()->json(['message' => 'Non autorisé à voir la liste des complexes.'], 403);
         }
         $complexes = Complexe::with('directionRegional')->get();
+        $directionRegionales = DirectionRegional::all();
         return response()->json([
             'message' => 'Liste des complexes récupérée avec succès.',
             'data' => $complexes,
+            'direction_regionales' => $directionRegionales
         ]);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Filiere;
+use App\Models\Secteur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -12,6 +13,7 @@ class FiliereController extends Controller
     public function index()
     {
         $filieres = Filiere::with('secteur')->get();
+        $secteurs = Secteur::all();
         // Vérifier si l'utilisateur a le droit de voir la liste des filières
         $currentUser = Auth::user();
         if (!Gate::forUser($currentUser)->allows('view', Filiere::class)) {
@@ -22,6 +24,7 @@ class FiliereController extends Controller
         return response()->json([
             'message' => 'Liste des filières récupérée avec succès.',
             'data' => $filieres,
+            'secteurs' => $secteurs,
         ]);
     }
 

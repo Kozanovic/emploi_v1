@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AnneeScolaire;
 use App\Models\Semaine;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,7 @@ class SemaineController extends Controller
     public function index()
     {
         $semaines = Semaine::with(['anneeScolaire'])->get();
+        $annees = AnneeScolaire::all();
         // Vérifier si l'utilisateur a le droit de voir la liste des modules
         $currentUser = Auth::user();
         if (!Gate::forUser($currentUser)->allows('view', Semaine::class)) {
@@ -22,6 +24,7 @@ class SemaineController extends Controller
         return response()->json([
             'message' => 'Liste des semaines récupérée avec succès.',
             'data' => $semaines,
+            'annees' => $annees,
         ], 200);
     }
 

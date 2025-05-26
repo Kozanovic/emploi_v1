@@ -24,9 +24,18 @@ class GroupeController extends Controller
                 'message' => "Vous n'avez pas le droit de voir la liste des groupes.",
             ], 403);
         }
+        $filieres = Filiere::with(['secteur'])->get();
+        $etablissement = Etablissement::where('id', $currentUser->etablissement_id)->first();
+        if (!$etablissement) {
+            return response()->json([
+                'message' => "établissement introuvable.",
+            ], 404);
+        }
         return response()->json([
             'message' => 'Liste des groupes récupérée avec succès.',
             'data' => $groupes,
+            'filiere' => $filieres,
+            'etablissement' => $etablissement,
         ]);
     }
 
