@@ -49,8 +49,9 @@ class DirecteurSuperController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(DirecteurSuper $directeurSuper)
+    public function show($id)
     {
+        $directeurSuper = DirecteurSuper::findOrFail($id);
         return response()->json([
             'message' => 'Directeur supérieur récupéré avec succès.',
             'data' => $directeurSuper,
@@ -68,8 +69,9 @@ class DirecteurSuperController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, DirecteurSuper $directeurSuper)
+    public function update(Request $request, $id)
     {
+        $directeurSuper = DirecteurSuper::findOrFail($id);
         // Validation des champs nécessaires
         $validated = $request->validate([
             'utilisateur_id' => 'sometimes|required|exists:users,id',
@@ -87,8 +89,9 @@ class DirecteurSuperController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(DirecteurSuper $directeurSuper)
+    public function destroy($id)
     {
+        $directeurSuper = DirecteurSuper::findOrFail($id);
         $directeurSuper->delete();
 
         return response()->json([

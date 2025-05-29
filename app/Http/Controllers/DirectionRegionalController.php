@@ -85,9 +85,10 @@ class DirectionRegionalController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, DirectionRegional $directionRegional)
+    public function update(Request $request, $id)
     {
         // Vérification des autorisations
+        $directionRegional = DirectionRegional::findOrFail($id);
         if (!Gate::allows('update', $directionRegional)) {
             return response()->json(['message' => 'Non autorisé à mettre à jour la direction régionale.'], 403);
         }
@@ -108,9 +109,10 @@ class DirectionRegionalController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(DirectionRegional $directionRegional)
+    public function destroy($id)
     {
         // Vérification des autorisations
+        $directionRegional = DirectionRegional::findOrFail($id);
         if (!Gate::allows('delete', $directionRegional)) {
             return response()->json(['message' => 'Non autorisé à supprimer la direction régionale.'], 403);
         }

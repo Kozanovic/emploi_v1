@@ -64,8 +64,9 @@ class EtablissementController extends Controller
     /**
      * Affiche un établissement spécifique
      */
-    public function show(Etablissement $etablissement)
+    public function show($id)
     {
+        $etablissement = Etablissement::findOrFail($id);
         // Vérification des autorisations
         if (!Gate::allows('view', $etablissement)) {
             return response()->json(['message' => 'Non autorisé à voir cet établissement.'], 403);
@@ -80,8 +81,9 @@ class EtablissementController extends Controller
     /**
      * Met à jour un établissement
      */
-    public function update(Request $request, Etablissement $etablissement)
+    public function update(Request $request, $id)
     {
+        $etablissement = Etablissement::findOrFail($id);
         $data = $request->validate([
             'nom' => 'sometimes|string|max:255',
             'adresse' => 'sometimes|string',
@@ -106,8 +108,9 @@ class EtablissementController extends Controller
     /**
      * Supprime un établissement
      */
-    public function destroy(Etablissement $etablissement)
+    public function destroy($id)
     {
+        $etablissement = Etablissement::findOrFail($id);
         // Vérification des autorisations
         if (!Gate::allows('delete', $etablissement)) {
             return response()->json(['message' => 'Non autorisé à supprimer cet établissement.'], 403);

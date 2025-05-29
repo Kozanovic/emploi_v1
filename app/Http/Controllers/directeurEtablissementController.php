@@ -39,8 +39,9 @@ class directeurEtablissementController extends Controller
     /**
      * Affiche un directeur spécifique
      */
-    public function show(DirecteurEtablissement $directeur)
+    public function show($id)
     {
+        $directeur = DirecteurEtablissement::findOrFail($id);
         return response()->json([
             'message' => 'Directeur récupéré avec succès.',
             'data' => $directeur->load(['utilisateur']),
@@ -50,8 +51,9 @@ class directeurEtablissementController extends Controller
     /**
      * Met à jour un directeur
      */
-    public function update(Request $request, DirecteurEtablissement $directeur)
+    public function update(Request $request,$id)
     {
+        $directeur = DirecteurEtablissement::findOrFail($id);
         $data = $request->validate([
             'utilisateur_id' => 'sometimes|exists:utilisateurs,id|unique:directeur_regionals,utilisateur_id,' . $directeur->id
         ]);
@@ -67,8 +69,9 @@ class directeurEtablissementController extends Controller
     /**
      * Supprime un directeur
      */
-    public function destroy(DirecteurEtablissement $directeur)
+    public function destroy($id)
     {
+        $directeur = DirecteurEtablissement::findOrFail($id);
         $directeur->delete();
         return response()->json([
             'message' => 'Directeur supprimé avec succès.'

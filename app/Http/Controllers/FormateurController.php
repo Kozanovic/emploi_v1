@@ -73,8 +73,9 @@ class FormateurController extends Controller
     /**
      * Affiche un formateur spécifique
      */
-    public function show(Formateur $formateur)
+    public function show($id)
     {
+        $formateur = Formateur::findOrFail($id);
         // Vérification de l'autorisation
         $currentUser = Auth::user();
         if (!Gate::forUser($currentUser)->allows('viewAny', $formateur)) {
@@ -91,12 +92,12 @@ class FormateurController extends Controller
     /**
      * Met à jour un formateur
      */
-    public function update(Request $request, Formateur $formateur)
+    public function update(Request $request, $id)
     {
+        $formateur = Formateur::findOrFail($id);
         $validated = $request->validate([
             'specialite' => 'sometimes|required|string|max:255',
             'heures_hebdomadaire' => 'sometimes|required|integer|min:1',
-            'peut_gerer_seance' => 'required|boolean',
             'utilisateur_id' => 'sometimes|required|exists:utilisateurs,id',
             'etablissement_id' => 'sometimes|required|exists:etablissements,id',
             'complexe_id' => 'sometimes|required|exists:complexes,id',
@@ -127,8 +128,9 @@ class FormateurController extends Controller
     /**
      * Supprime un formateur
      */
-    public function destroy(Formateur $formateur)
+    public function destroy($id)
     {
+        $formateur = Formateur::findOrFail($id);
         // Vérification de l'autorisation
         $currentUser = Auth::user();
         if (!Gate::forUser($currentUser)->allows('delete', $formateur)) {

@@ -87,8 +87,9 @@ class ComplexeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Complexe $complexe)
+    public function update(Request $request, $id)
     {
+        $complexe = Complexe::findOrFail($id);
         $request->validate([
             'nom' => 'required|string|max:255',
             'direction_regional_id' => 'required|exists:direction_regionals,id'
@@ -109,8 +110,9 @@ class ComplexeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Complexe $complexe)
+    public function destroy($id)
     {
+        $complexe = Complexe::findOrFail($id);
         // Vérification des autorisations
         if (!Gate::allows('delete', $complexe)) {
             return response()->json(['message' => 'Non autorisé à supprimer le complexe.'], 403);

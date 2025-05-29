@@ -49,8 +49,10 @@ class DirecteurRegionalController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(DirecteurRegional $directeurRegional)
+    public function show($id)
     {
+        $directeurRegional = DirecteurRegional::with('utilisateur')->findOrFail($id);
+        
         return response()->json([
             'message' => 'Directeur régional récupéré avec succès.',
             'data' => $directeurRegional,
@@ -68,8 +70,9 @@ class DirecteurRegionalController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, DirecteurRegional $directeurRegional)
+    public function update(Request $request, $id)
     {
+        $directeurRegional = DirecteurRegional::findOrFail($id);
         // Validation des champs nécessaires
         $validated = $request->validate([
             'utilisateur_id' => 'sometimes|required|exists:users,id',
@@ -87,8 +90,9 @@ class DirecteurRegionalController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(DirecteurRegional $directeurRegional)
+    public function destroy($id)
     {
+        $directeurRegional = DirecteurRegional::findOrFail($id);
         $directeurRegional->delete();
 
         return response()->json([
