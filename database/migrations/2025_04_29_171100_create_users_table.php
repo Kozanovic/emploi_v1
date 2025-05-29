@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nom');
             $table->string('email')->unique();
             $table->string('password');
-            $table->enum('role', ['DirecteurSuper', 'DirecteurRegional', 'DirecteurComplexe', 'DirecteurEtablissement', 'Formateur'])->default('Formateur');
+            $table->enum('role', ['DirecteurSuper', 'DirecteurRegional', 'DirecteurComplexe', 'DirecteurEtablissement', 'Formateur',"Stagiaire"]);
             $table->timestamps();
         });
     }

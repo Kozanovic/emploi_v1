@@ -31,7 +31,6 @@ class SeanceFactory extends Factory
             'heure_debut' => $this->faker->time(),
             'heure_fin' => $this->faker->time(),
             'type' => $this->faker->randomElement(['presentiel', 'distanciel']),
-            'numero_seance' => $this->faker->numberBetween(1, 10),
             'semaine_id' => $semaine->id,
             'salle_id' => $salle->id,
             'module_id' => $module->id,

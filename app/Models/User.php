@@ -60,6 +60,10 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(Formateur::class);
     }
+    // public function stagiaire()
+    // {
+    //     return $this->hasOne(Stagiaire::class);
+    // }
 
     public function estDirecteurSuper()
     {
@@ -80,5 +84,9 @@ class User extends Authenticatable implements JWTSubject
     public function estFormateur()
     {
         return $this->role === 'Formateur';
+    }
+    public function estStagiaire()
+    {
+        return $this->role === 'Stagiaire';
     }
 }
