@@ -12,6 +12,10 @@ class DirecteurComplexe extends Model
 
     public function utilisateur()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'utilisateur_id');
+    }
+    public function complexe()
+    {
+        return $this->hasOne(Complexe::class);
     }
 }

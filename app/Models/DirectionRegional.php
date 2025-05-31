@@ -9,7 +9,7 @@ class DirectionRegional extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nom', 'adresse', 'telephone'];
+    protected $fillable = ['nom', 'adresse', 'telephone', 'directeur_regional_id'];
 
     public function complexes()
     {
@@ -18,5 +18,9 @@ class DirectionRegional extends Model
     public function formateurs()
     {
         return $this->hasMany(Formateur::class);
+    }
+    public function directeurRegional()
+    {
+        return $this->belongsTo(DirecteurRegional::class);
     }
 }

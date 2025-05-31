@@ -11,10 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('complexes', function (Blueprint $table) {
+        Schema::create('direction_regionals', function (Blueprint $table) {
             $table->id();
             $table->string('nom');
-            $table->foreignId('direction_regional_id')->constrained('direction_regionals')->onDelete('cascade');
+            $table->longText('adresse');
+            $table->string('telephone');
+            $table->foreignId('directeur_regional_id')
+                ->constrained('directeur_regionals')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -24,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('complexes');
+        Schema::dropIfExists('direction_regionals');
     }
 };

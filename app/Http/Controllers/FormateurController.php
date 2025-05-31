@@ -19,18 +19,58 @@ class FormateurController extends Controller
      */
     public function index()
     {
-        // Vérification de l'autorisation
-        $currentUser = Auth::user();
-        if (!Gate::forUser($currentUser)->allows('view', Formateur::class)) {
+        $user = Auth::user();
+
+        if (!Gate::forUser($user)->allows('view', Formateur::class)) {
             return response()->json([
-                'message' => 'Vous n\'êtes pas autorisé à voir les formateurs.',
+                'message' => 'Non autorisé à voir les formateurs.',
             ], 403);
         }
-        $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])->get();
+
+        $formateurs = collect();
+        $utilisateurs = collect();
+        $etablissements = collect();
+
+        if ($user->role == 'DirecteurRegional') {
+            $directionRegional = $user->directeurRegional;
+
+            if ($directionRegional) {
+                $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])
+                    ->where('direction_regional_id', $directionRegional->id)
+                    ->get();
+
+                $utilisateurs = User::whereHas('formateur', function ($query) use ($directionRegional) {
+                    $query->where('direction_regional_id', $directionRegional->id);
+                })->where('role', 'Formateur')->get();
+
+                $etablissements = Etablissement::whereHas('complexe', function ($query) use ($directionRegional) {
+                    $query->where('direction_regional_id', $directionRegional->id);
+                })->get();
+            }
+        }
+
+        if ($user->role == 'DirecteurEtablissement') {
+            $directeurEtab = $user->directeurEtablissement;
+
+            if ($directeurEtab) {
+                // On récupère l'établissement dirigé par ce directeur
+                $etablissement = Etablissement::where('directeur_etablissement_id', $directeurEtab->id)->first();
+
+                if ($etablissement) {
+                    $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])
+                        ->where('etablissement_id', $etablissement->id)
+                        ->get();
+
+                    $utilisateurs = User::whereHas('formateur', function ($query) use ($etablissement) {
+                        $query->where('etablissement_id', $etablissement->id);
+                    })->where('role', 'Formateur')->get();
+                }
+            }
+        }
+
         $secteurs = Secteur::all();
         $directionRegionales = DirectionRegional::all();
-        $etablissements = Etablissement::where('direction_regional_id', $currentUser->direction_regional_id)->get();
-        $utilisateurs = User::where('role', 'Formateur')->get();
+
         return response()->json([
             'message' => 'Liste des formateurs récupérée avec succès',
             'data' => $formateurs,
@@ -40,6 +80,8 @@ class FormateurController extends Controller
             'utilisateurs' => $utilisateurs,
         ]);
     }
+
+
 
     /**
      * Crée un nouveau formateur

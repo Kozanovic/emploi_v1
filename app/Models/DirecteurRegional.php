@@ -12,6 +12,10 @@ class DirecteurRegional extends Model
 
     public function utilisateur()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'utilisateur_id');
+    }
+    public function directionRegional()
+    {
+        return $this->hasOne(DirectionRegional::class, 'directeur_regional_id');
     }
 }

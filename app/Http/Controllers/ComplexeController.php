@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Complexe;
+use App\Models\DirecteurComplexe;
 use App\Models\DirectionRegional;
+use App\Models\DirecteurRegional;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 
 class ComplexeController extends Controller
 {
@@ -14,18 +17,43 @@ class ComplexeController extends Controller
      */
     public function index()
     {
-        // Vérification des autorisations
+        $user = Auth::user();
+
         if (!Gate::allows('view', Complexe::class)) {
             return response()->json(['message' => 'Non autorisé à voir la liste des complexes.'], 403);
         }
-        $complexes = Complexe::with('directionRegional')->get();
+
+        $directeurRegional = DirecteurRegional::where('utilisateur_id', $user->id)->first();
+
+        if (!$directeurRegional || !$directeurRegional->directionRegional) {
+            return response()->json(['message' => 'Direction régionale introuvable.'], 404);
+        }
+
+        $directionRegional = $directeurRegional->directionRegional;
+
+        // Récupérer les complexes de cette direction régionale
+        $complexes = Complexe::with('directionRegional')
+            ->where('direction_regional_id', $directionRegional->id)
+            ->get();
+
+        // Extraire les IDs des directeur_complexes liés à ces complexes
+        $directeurComplexeIds = $complexes->pluck('directeur_complexe_id')->unique();
+
+        // Récupérer uniquement ces directeurComplexes avec leur utilisateur
+        $directeurComplexes = DirecteurComplexe::with('utilisateur')
+            ->whereIn('id', $directeurComplexeIds)
+            ->get();
+
         $directionRegionales = DirectionRegional::all();
+
         return response()->json([
             'message' => 'Liste des complexes récupérée avec succès.',
             'data' => $complexes,
-            'direction_regionales' => $directionRegionales
+            'direction_regionales' => $directionRegionales,
+            'directeur_complexes' => $directeurComplexes,
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -42,7 +70,8 @@ class ComplexeController extends Controller
     {
         $request->validate([
             'nom' => 'required|string|max:255',
-            'direction_regional_id' => 'required|exists:direction_regionals,id'
+            'directeur_regional_id' => 'required|exists:directeur_regionals,id',
+            'directeur_complexe_id' => 'required|exists:directeur_complexes,id',
         ]);
         // Vérification des autorisations
         if (!Gate::allows('create', Complexe::class)) {
@@ -92,7 +121,8 @@ class ComplexeController extends Controller
         $complexe = Complexe::findOrFail($id);
         $request->validate([
             'nom' => 'required|string|max:255',
-            'direction_regional_id' => 'required|exists:direction_regionals,id'
+            'directeur_regional_id' => 'required|exists:directeur_regionals,id',
+            'directeur_complexe_id' => 'required|exists:directeur_complexes,id',
         ]);
         // Vérification des autorisations
         if (!Gate::allows('update', $complexe)) {

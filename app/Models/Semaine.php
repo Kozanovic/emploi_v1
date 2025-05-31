@@ -25,4 +25,8 @@ class Semaine extends Model
     {
         return $this->hasMany(Seance::class);
     }
+    public function etablissement()
+    {
+        return $this->belongsTo(Etablissement::class);
+    }
 }

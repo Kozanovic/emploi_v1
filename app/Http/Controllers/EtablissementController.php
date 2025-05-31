@@ -22,17 +22,18 @@ class EtablissementController extends Controller
             return response()->json(['message' => 'Non autorisé à voir la liste des établissements.'], 403);
         }
         // Récupération de tous les établissements
-        $etablissements = Etablissement::with(['directeurEtablissement'])->get();
-        $directeurEtablissement = Etablissement::where('directeur_etablissement_id', $currentUser->id)->get();
-        $utilisateurs = User::where('role', 'DirecteurEtablissement')->get();
-        $complexes = complexe::all();
+        $directeurComplexe = $currentUser->directeurComplexe;
+        if (!$directeurComplexe || !$directeurComplexe->complexe) {
+            return response()->json([
+                'message' => "Aucun complexe trouvé pour ce directeur.",
+            ], 404);
+        }
+        $complexe = $directeurComplexe->complexe()->first();
         return response()->json([
-            'message' => 'Liste des établissements récupérée avec succès',
-            'data' => $etablissements,
-            'directeurEtablissement' => $directeurEtablissement,
-            'utilisateurs' => $utilisateurs,
-            'complexes' => $complexes,
-        ]);
+            'message' => 'Liste des établissements récupérée avec succès.',
+            'complexe' => $complexe,
+            'etablissements' => $complexe->etablissements,
+        ], 200);
     }
 
     /**

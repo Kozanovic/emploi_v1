@@ -42,27 +42,27 @@ class User extends Authenticatable implements JWTSubject
     }
     public function directeurSuper()
     {
-        return $this->hasOne(DirecteurSuper::class);
+        return $this->hasOne(DirecteurSuper::class, 'utilisateur_id');
     }
     public function directeurRegional()
     {
-        return $this->hasOne(DirecteurRegional::class);
+        return $this->hasOne(DirecteurRegional::class, 'utilisateur_id');
     }
     public function directeurComplexe()
     {
-        return $this->hasOne(DirecteurComplexe::class);
+        return $this->hasOne(DirecteurComplexe::class, 'utilisateur_id');
     }
     public function directeurEtablissement()
     {
-        return $this->hasOne(DirecteurEtablissement::class);
+        return $this->hasOne(DirecteurEtablissement::class, 'utilisateur_id');
     }
     public function formateur()
     {
-        return $this->hasOne(Formateur::class);
+        return $this->hasOne(Formateur::class, 'utilisateur_id');
     }
     // public function stagiaire()
     // {
-    //     return $this->hasOne(Stagiaire::class);
+    //     return $this->hasOne(Stagiaire::class,'utilisateur_id');
     // }
 
     public function estDirecteurSuper()
@@ -85,8 +85,8 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->role === 'Formateur';
     }
-    public function estStagiaire()
-    {
-        return $this->role === 'Stagiaire';
-    }
+    // public function estStagiaire()
+    // {
+    //     return $this->role === 'Stagiaire';
+    // }
 }

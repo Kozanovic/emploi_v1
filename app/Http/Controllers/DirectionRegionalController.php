@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\DirectionRegional;
+use App\Models\DirecteurRegional;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class DirectionRegionalController extends Controller
@@ -13,15 +15,18 @@ class DirectionRegionalController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
         // Vérification des autorisations
         if (!Gate::allows('view', DirectionRegional::class)) {
             return response()->json(['message' => 'Non autorisé à voir la liste des directions régionales.'], 403);
         }
         // Récupération de toutes les directions régionales
         $directionRegionals = DirectionRegional::all();
+        $directeurRegionals = DirecteurRegional::with('utilisateur')->get();
         return response()->json([
             'message' => 'Liste des directions régionales récupérée avec succès',
-            'data' => $directionRegionals
+            'data' => $directionRegionals,
+            'directeurRegionals' => $directeurRegionals
         ]);
     }
 
@@ -42,6 +47,7 @@ class DirectionRegionalController extends Controller
             'nom' => 'required|string|max:255',
             'adresse' => 'required|string|max:255',
             'telephone' => 'required|string|max:255',
+            'directeur_regional_id' => 'required|exists:direction_regionals,id'
         ]);
 
         // Vérification des autorisations
@@ -96,6 +102,7 @@ class DirectionRegionalController extends Controller
             'nom' => 'required|string|max:255',
             'adresse' => 'required|string|max:255',
             'telephone' => 'required|string|max:255',
+            'directeur_regional_id' => 'sometimes|required|exists:direction_regionals,id'
         ]);
 
         $directionRegional->update($request->all());

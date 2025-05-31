@@ -66,12 +66,18 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('AQZSEDRF'),
             'role' => 'Formateur',
         ]);
-        DirectionRegional::factory()->create();
-        Complexe::factory()->create();
+        Utilisateur::factory()->create([
+            'nom' => 'salsabil',
+            'email' => 'salsabil@gmail.com',
+            'password' => Hash::make('AQZSEDRF'),
+            'role' => 'Formateur',
+        ]);
         DirecteurEtablissement::factory()->create();
         DirecteurSuper::factory()->create();
         DirecteurComplexe::factory()->create();
         DirecteurRegional::factory()->create();
+        DirectionRegional::factory()->create();
+        Complexe::factory()->create();
         Etablissement::factory()->create();
         Formateur::factory()->create();
         Secteur::factory()->create();

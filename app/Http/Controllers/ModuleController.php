@@ -12,21 +12,30 @@ class ModuleController extends Controller
 {
     public function index()
     {
-        $modules = Module::with(['filiere'])->get();
-        // Vérifier si l'utilisateur a le droit de voir la liste des modules
         $currentUser = Auth::user();
         if (!Gate::forUser($currentUser)->allows('view', Module::class)) {
             return response()->json([
                 'message' => "Vous n'avez pas le droit de voir la liste des modules.",
             ], 403);
         }
-        $filieres = Filiere::with(['secteur'])->get();
+
+        $etablissement = $currentUser->directeurEtablissement->etablissement;
+
+        $modules = Module::whereHas('filiere', function ($query) use ($etablissement) {
+            $query->whereHas('etablissements', function ($q) use ($etablissement) {
+                $q->where('etablissements.id', $etablissement->id);
+            });
+        })->with('filiere')->get();
+
+        $filieres = $etablissement->filieres()->with('secteur')->get();
+
         return response()->json([
             'message' => 'Liste des modules récupérée avec succès.',
             'data' => $modules,
             'filieres' => $filieres,
         ]);
     }
+
 
     public function store(Request $request)
     {
@@ -44,6 +53,16 @@ class ModuleController extends Controller
         if (!Gate::forUser($currentUser)->allows('create', Module::class)) {
             return response()->json([
                 'message' => "Vous n'avez pas le droit de créer un module.",
+            ], 403);
+        }
+        $etablissement = $currentUser->directeurEtablissement->etablissement;
+
+        // Vérifie que la filière est bien offerte dans l'établissement du directeur
+        $filiereOfferte = $etablissement->filieres()->where('filieres.id', $validated['filiere_id'])->exists();
+
+        if (!$filiereOfferte) {
+            return response()->json([
+                'message' => "Cette filière n'est pas offerte dans votre établissement.",
             ], 403);
         }
         $module = Module::create($validated)->fresh(['filiere']);

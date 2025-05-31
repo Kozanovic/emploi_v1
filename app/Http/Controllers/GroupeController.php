@@ -16,28 +16,33 @@ class GroupeController extends Controller
 {
     public function index()
     {
-        $groupes = Groupe::with(['filiere', 'etablissement'])->get();
-        // Vérifier si l'utilisateur a le droit de voir la liste des groupes
         $currentUser = Auth::user();
+
         if (!Gate::forUser($currentUser)->allows('view', Groupe::class)) {
             return response()->json([
                 'message' => "Vous n'avez pas le droit de voir la liste des groupes.",
             ], 403);
         }
-        $filieres = Filiere::with(['secteur'])->get();
-        $etablissement = Etablissement::where('id', $currentUser->etablissement_id)->first();
+
+        $etablissement = $currentUser->directeurEtablissement->etablissement;
+
         if (!$etablissement) {
             return response()->json([
-                'message' => "établissement introuvable.",
+                'message' => "Établissement introuvable.",
             ], 404);
         }
+        $groupes = $etablissement->groupes()->with(['filiere'])->get();
+
+        $filieres = $etablissement->filieres()->with('secteur')->get();
+
         return response()->json([
             'message' => 'Liste des groupes récupérée avec succès.',
             'data' => $groupes,
-            'filiere' => $filieres,
+            'filieres' => $filieres,
             'etablissement' => $etablissement,
         ]);
     }
+
 
     public function store(Request $request)
     {
@@ -52,6 +57,16 @@ class GroupeController extends Controller
         if (!Gate::forUser($currentUser)->allows('create', Groupe::class)) {
             return response()->json([
                 'message' => "Vous n'avez pas le droit de créer un groupe.",
+            ], 403);
+        }
+
+        $etablissement = $currentUser->directeurEtablissement->etablissement;
+
+        $filiereOfferte = $etablissement->filieres()->where('filieres.id', $validated['filiere_id'])->exists();
+
+        if (!$filiereOfferte) {
+            return response()->json([
+                'message' => "Cette filière n'est pas offerte dans votre établissement.",
             ], 403);
         }
 

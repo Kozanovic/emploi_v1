@@ -13,9 +13,8 @@ class Etablissement extends Model
 
     public function directeurEtablissement()
     {
-        return $this->belongsTo(DirecteurEtablissement::class);
+        return $this->belongsTo(DirecteurEtablissement::class, 'directeur_etablissement_id');
     }
-
     public function complexe()
     {
         return $this->belongsTo(Complexe::class);
@@ -40,7 +39,11 @@ class Etablissement extends Model
     {
         return $this->hasMany(AnneeScolaire::class);
     }
-
+    
+    public function semaines()
+    {
+        return $this->hasMany(Semaine::class);
+    }
     public function secteurs()
     {
         return $this->belongsToMany(Secteur::class, 'sect_efps');

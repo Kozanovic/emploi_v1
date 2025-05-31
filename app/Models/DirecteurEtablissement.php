@@ -13,10 +13,10 @@ class DirecteurEtablissement extends Model
 
     public function utilisateur()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'utilisateur_id');
     }
     public function etablissement()
     {
-        return $this->hasOne(Etablissement::class);
+        return $this->hasOne(Etablissement::class,'directeur_etablissement_id');
     }
 }

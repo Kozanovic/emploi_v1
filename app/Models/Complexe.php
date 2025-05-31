@@ -9,11 +9,15 @@ class Complexe extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nom', 'direction_regional_id'];
+    protected $fillable = ['nom', 'direction_regional_id', 'directeur_complexe_id'];
 
     public function directionRegional()
     {
         return $this->belongsTo(DirectionRegional::class);
+    }
+    public function directeurComplexe()
+    {
+        return $this->belongsTo(DirecteurComplexe::class);
     }
     public function etablissements()
     {
