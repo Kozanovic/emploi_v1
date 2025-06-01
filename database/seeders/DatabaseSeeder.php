@@ -72,10 +72,10 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('AQZSEDRF'),
             'role' => 'Formateur',
         ]);
-        DirecteurEtablissement::factory()->create();
         DirecteurSuper::factory()->create();
         DirecteurComplexe::factory()->create();
         DirecteurRegional::factory()->create();
+        DirecteurEtablissement::factory()->create();
         DirectionRegional::factory()->create();
         Complexe::factory()->create();
         Etablissement::factory()->create();
