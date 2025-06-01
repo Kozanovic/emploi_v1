@@ -6,7 +6,7 @@ use App\Models\Affectation;
 use Illuminate\Database\Seeder;
 
 use App\Models\AnneeScolaire;
-use App\Models\directeurEtablissement;
+use App\Models\DirecteurEtablissement;
 use App\Models\DirecteurSuper;
 use App\Models\DirecteurComplexe;
 use App\Models\DirecteurRegional;
