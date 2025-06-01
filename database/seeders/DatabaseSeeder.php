@@ -72,27 +72,27 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('AQZSEDRF'),
             'role' => 'Formateur',
         ]);
-        DirecteurEtablissement::factory(5)->create();
-        DirecteurSuper::factory(5)->create();
-        DirecteurComplexe::factory(5)->create();
-        DirecteurRegional::factory(5)->create();
-        DirectionRegional::factory(5)->create();
-        Complexe::factory(5)->create();
-        Etablissement::factory(5)->create();
-        Formateur::factory(5)->create();
-        Secteur::factory(5)->create();
-        Filiere::factory(5)->create();
-        Groupe::factory(5)->create();
-        Module::factory(5)->create();
-        AnneeScolaire::factory(5)->create();
-        Salle::factory(5)->create();
-        Semaine::factory(5)->create();
-        Ferie::factory(5)->create();
-        Seance::factory(5)->create();
-        Affectation::factory(5)->create();
-        Offrir::factory(5)->create();
-        SectEfp::factory(5)->create();
-        SemFer::factory(5)->create();
-        Suivre::factory(5)->create();
+        DirecteurEtablissement::factory()->create();
+        DirecteurSuper::factory()->create();
+        DirecteurComplexe::factory()->create();
+        DirecteurRegional::factory()->create();
+        DirectionRegional::factory()->create();
+        Complexe::factory()->create();
+        Etablissement::factory()->create();
+        Formateur::factory()->create();
+        Secteur::factory()->create();
+        Filiere::factory()->create();
+        Groupe::factory()->create();
+        Module::factory()->create();
+        AnneeScolaire::factory()->create();
+        Salle::factory()->create();
+        Semaine::factory()->create();
+        Ferie::factory()->create();
+        Seance::factory()->create();
+        Affectation::factory()->create();
+        Offrir::factory()->create();
+        SectEfp::factory()->create();
+        SemFer::factory()->create();
+        Suivre::factory()->create();
     }
 }
