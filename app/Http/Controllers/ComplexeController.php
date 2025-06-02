@@ -70,7 +70,7 @@ class ComplexeController extends Controller
     {
         $request->validate([
             'nom' => 'required|string|max:255',
-            'directeur_regional_id' => 'required|exists:directeur_regionals,id',
+            'direction_regional_id' => 'required|exists:direction_regionals,id',
             'directeur_complexe_id' => 'required|exists:directeur_complexes,id',
         ]);
         // Vérification des autorisations

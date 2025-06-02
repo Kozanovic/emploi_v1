@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DirectionRegional;
 use App\Models\Etablissement;
 use App\Models\Formateur;
-use App\Models\Secteur;
+use App\Models\Complexe;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +30,7 @@ class FormateurController extends Controller
         $formateurs = collect();
         $utilisateurs = collect();
         $etablissements = collect();
+        $complexes = collect();
 
         if ($user->role == 'DirecteurRegional') {
             $directionRegional = $user->directeurRegional;
@@ -46,6 +47,7 @@ class FormateurController extends Controller
                 $etablissements = Etablissement::whereHas('complexe', function ($query) use ($directionRegional) {
                     $query->where('direction_regional_id', $directionRegional->id);
                 })->get();
+                $complexes = Complexe::where('direction_regional_id', $directionRegional->id)->get();
             }
         }
 
@@ -65,16 +67,16 @@ class FormateurController extends Controller
                         $query->where('etablissement_id', $etablissement->id);
                     })->where('role', 'Formateur')->get();
                 }
+                $complexes = Complexe::where('direction_regional_id', $directionRegional->id)->get();
             }
         }
 
-        $secteurs = Secteur::all();
         $directionRegionales = DirectionRegional::all();
 
         return response()->json([
             'message' => 'Liste des formateurs récupérée avec succès',
             'data' => $formateurs,
-            'secteurs' => $secteurs,
+            'complexes' => $complexes,
             'direction_regionales' => $directionRegionales,
             'etablissements' => $etablissements,
             'utilisateurs' => $utilisateurs,
@@ -92,7 +94,7 @@ class FormateurController extends Controller
         $validated = $request->validate([
             'specialite' => 'required|string|max:255',
             'heures_hebdomadaire' => 'required|integer|min:1',
-            'utilisateur_id' => 'required|exists:utilisateurs,id',
+            'utilisateur_id' => 'required|exists:users,id',
             'etablissement_id' => 'required|exists:etablissements,id',
             'complexe_id' => 'required|exists:complexes,id',
             'direction_regional_id' => 'required|exists:direction_regionals,id',
@@ -140,7 +142,7 @@ class FormateurController extends Controller
         $validated = $request->validate([
             'specialite' => 'sometimes|required|string|max:255',
             'heures_hebdomadaire' => 'sometimes|required|integer|min:1',
-            'utilisateur_id' => 'sometimes|required|exists:utilisateurs,id',
+            'utilisateur_id' => 'sometimes|required|exists:users,id',
             'etablissement_id' => 'sometimes|required|exists:etablissements,id',
             'complexe_id' => 'sometimes|required|exists:complexes,id',
             'direction_regional_id' => 'sometimes|required|exists:direction_regionals,id',
@@ -154,13 +156,16 @@ class FormateurController extends Controller
             ], 403);
         }
 
-        //verifier si le formateur peut gerer une seance est vrai puis changer le role de l'utilisateur a DirecteurEtablissement
-        if ($validated['peut_gerer_seance'] == true) {
-            $formateur->utilisateur->update(['role' => 'DirecteurEtablissement']);
-        } else {
-            $formateur->utilisateur->update(['role' => 'Formateur']);
+        if($currentUser->role == 'DirecteurRegional'){
+            $formateur->update($validated);
+        }else{
+            if ($validated['peut_gerer_seance'] == true) {
+                $formateur->utilisateur->update(['role' => 'DirecteurEtablissement']);
+            } else {
+                $formateur->utilisateur->update(['role' => 'Formateur']);
+            }
+            $formateur->update($validated);
         }
-        $formateur->update($validated);
 
         return response()->json([
             'message' => 'Formateur mis à jour avec succès.',

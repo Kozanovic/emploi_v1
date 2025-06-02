@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
+use App\Models\DirecteurEtablissement;
 use App\Models\Complexe;
 
 class EtablissementController extends Controller
@@ -16,25 +17,40 @@ class EtablissementController extends Controller
      */
     public function index()
     {
-        // Vérification des autorisations
         $currentUser = Auth::user();
+
         if (!Gate::forUser($currentUser)->allows('view', Etablissement::class)) {
-            return response()->json(['message' => 'Non autorisé à voir la liste des établissements.'], 403);
+            return response()->json(['message' => 'Non autorisé.'], 403);
         }
-        // Récupération de tous les établissements
+
         $directeurComplexe = $currentUser->directeurComplexe;
+
         if (!$directeurComplexe || !$directeurComplexe->complexe) {
             return response()->json([
                 'message' => "Aucun complexe trouvé pour ce directeur.",
             ], 404);
         }
-        $complexe = $directeurComplexe->complexe()->first();
+
+        $complexe = $directeurComplexe->complexe()
+            ->with([
+                'etablissements.directeurEtablissement.utilisateur'
+            ])
+            ->first();
+
+        $directeurs = DirecteurEtablissement::with('utilisateur')
+            ->whereHas('etablissement', function ($query) use ($complexe) {
+                $query->where('complexe_id', $complexe->id);
+            })
+            ->get();
+
         return response()->json([
-            'message' => 'Liste des établissements récupérée avec succès.',
+            'message' => 'Données récupérées avec succès.',
             'complexe' => $complexe,
             'etablissements' => $complexe->etablissements,
-        ], 200);
+            'directeurs' => $directeurs,
+        ]);
     }
+
 
     /**
      * Crée un nouvel établissement

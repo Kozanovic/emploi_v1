@@ -9,7 +9,7 @@ class Etablissement extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nom', 'adresse', 'telephone', 'directeur_etablissement_id'];
+    protected $fillable = ['nom', 'adresse', 'telephone', 'directeur_etablissement_id','complexe_id'];
 
     public function directeurEtablissement()
     {

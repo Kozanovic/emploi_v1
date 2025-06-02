@@ -21,12 +21,11 @@ class DirectionRegionalController extends Controller
             return response()->json(['message' => 'Non autorisé à voir la liste des directions régionales.'], 403);
         }
         // Récupération de toutes les directions régionales
-        $directionRegionals = DirectionRegional::all();
-        $directeurRegionals = DirecteurRegional::with('utilisateur')->get();
+        $directionRegionals = DirectionRegional::with('directeurRegional.utilisateur')->get();
+
         return response()->json([
             'message' => 'Liste des directions régionales récupérée avec succès',
-            'data' => $directionRegionals,
-            'directeurRegionals' => $directeurRegionals
+            'data' => $directionRegionals
         ]);
     }
 
