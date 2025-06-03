@@ -31,11 +31,14 @@ class SalleController extends Controller
             ], 404);
         }
 
+        $salles = $etablissement->salles()->with('etablissement')->get();
+
         return response()->json([
             'message' => 'Liste des salles récupérée avec succès.',
-            'etablissement' => $etablissement,
-            'salles' => $etablissement->salles,
+            'salles' => $salles,
+            'etablissement' => $etablissement,  
         ], 200);
+
     }
 
 

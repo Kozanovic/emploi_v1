@@ -31,7 +31,7 @@ class GroupeController extends Controller
                 'message' => "Établissement introuvable.",
             ], 404);
         }
-        $groupes = $etablissement->groupes()->with(['filiere'])->get();
+        $groupes = $etablissement->groupes()->with(['filiere','etablissement'])->get();
 
         $filieres = $etablissement->filieres()->with('secteur')->get();
 

@@ -55,7 +55,6 @@ class FormateurController extends Controller
             $directeurEtab = $user->directeurEtablissement;
 
             if ($directeurEtab) {
-                // On récupère l'établissement dirigé par ce directeur
                 $etablissement = Etablissement::where('directeur_etablissement_id', $directeurEtab->id)->first();
 
                 if ($etablissement) {
@@ -66,10 +65,16 @@ class FormateurController extends Controller
                     $utilisateurs = User::whereHas('formateur', function ($query) use ($etablissement) {
                         $query->where('etablissement_id', $etablissement->id);
                     })->where('role', 'Formateur')->get();
+
+                    // Si l'établissement a un complexe, on retrouve la direction régionale
+                    $complexe = $etablissement->complexe;
+                    if ($complexe) {
+                        $complexes = collect([$complexe]);
+                        $directionRegionales = collect([$complexe->directionRegional]);
+                    }
                 }
-                $complexes = Complexe::where('direction_regional_id', $directionRegional->id)->get();
             }
-        }
+}
 
         $directionRegionales = DirectionRegional::all();
 
@@ -159,7 +164,7 @@ class FormateurController extends Controller
         if($currentUser->role == 'DirecteurRegional'){
             $formateur->update($validated);
         }else{
-            if ($validated['peut_gerer_seance'] == true) {
+        if ($request->boolean('peut_gerer_seance')) {
                 $formateur->utilisateur->update(['role' => 'DirecteurEtablissement']);
             } else {
                 $formateur->utilisateur->update(['role' => 'Formateur']);
