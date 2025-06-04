@@ -64,8 +64,8 @@ Route::middleware([AuthJwtMiddlewaer::class])->group(function () {
         'directeurs-super' => directeurSuperController::class, //✅ ymkn yssawb directeurRegional
         'directeurs-regionales' => directeurRegionalController::class, //✅ ymkn yssawb formateur w directeurComplexe
         'directeurs-complexes' => directeurComplexeController::class, //✅ ymkn yssawb directeurEtablissement
-        'directeur-etablissements' => directeurEtablissementController::class, //✅ maghaydir 7ta 9lwa 
-        'formateurs' => FormateurController::class, //✅ maghaydir 7ta 9lwa 
+        'directeur-etablissements' => directeurEtablissementController::class, //✅ maghaydir 7ta 7aja 
+        'formateurs' => FormateurController::class, //✅ maghaydir 7ta 7aja 
 
         // Tables métiers
         'secteurs' => SecteurController::class, //1 - Directeur_super ✅
