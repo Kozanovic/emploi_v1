@@ -74,7 +74,7 @@ class FormateurController extends Controller
                     }
                 }
             }
-}
+        }
 
         $directionRegionales = DirectionRegional::all();
 
@@ -161,12 +161,14 @@ class FormateurController extends Controller
             ], 403);
         }
 
-        if($currentUser->role == 'DirecteurRegional'){
+        if ($currentUser->role === 'DirecteurRegional') {
             $formateur->update($validated);
-        }else{
-        if ($request->boolean('peut_gerer_seance')) {
+        } else {
+            if ($request->boolean('peut_gerer_seance') === true) {
+                $formateur->update(['peut_gerer_seance' => true]);
                 $formateur->utilisateur->update(['role' => 'DirecteurEtablissement']);
             } else {
+                $formateur->update(['peut_gerer_seance' => false]);
                 $formateur->utilisateur->update(['role' => 'Formateur']);
             }
             $formateur->update($validated);
