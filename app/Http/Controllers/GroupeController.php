@@ -137,32 +137,4 @@ class GroupeController extends Controller
             'message' => 'Groupe supprimé avec succès.'
         ]);
     }
-    public function getGroupesBySecteur($secteurId)
-    {
-        $currentUser = Auth::user();
-        // Vérifier si l'utilisateur a le droit de voir les groupes par secteur
-        if (!Gate::forUser($currentUser)->allows('viewAny', Groupe::class)) {
-            return response()->json([
-                'message' => "Vous n'avez pas le droit de voir les groupes par secteur.",
-            ], 403);
-        }
-        if (!$currentUser->directeurEtablissement || !$currentUser->directeurEtablissement->etablissement) {
-            return response()->json([
-                'message' => "établissement introuvable.",
-            ], 403);
-        }
-        $etablissementId = $currentUser->directeurEtablissement->etablissement->id;
-        $groupes = Groupe::where('etablissement_id', $etablissementId)
-            ->whereHas('filiere', function ($query) use ($secteurId) {
-                // On filtre les groupes dont la filière a le secteur demandé
-                $query->where('secteur_id', $secteurId);
-            })
-            ->with(['filiere']) // Optionnel : inclure les données de la filière dans le résultat
-            ->get();
-
-        return response()->json([
-            'message' => 'Groupes récupérés avec succès.',
-            'data' => $groupes,
-        ]);
-    }
 }

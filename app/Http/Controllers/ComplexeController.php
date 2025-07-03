@@ -32,7 +32,10 @@ class ComplexeController extends Controller
         $directionRegional = $directeurRegional->directionRegional;
 
         // Récupérer les complexes de cette direction régionale
-        $complexes = Complexe::with('directionRegional')
+        $complexes = Complexe::whereHas('directeurComplexe.utilisateur', function ($q) use ($user) {
+            $q->where('responsable_id', $user->id);
+        })
+            ->with(['directionRegional', 'directeurComplexe.utilisateur'])
             ->where('direction_regional_id', $directionRegional->id)
             ->get();
 
@@ -40,8 +43,12 @@ class ComplexeController extends Controller
         $directeurComplexeIds = $complexes->pluck('directeur_complexe_id')->unique();
 
         // Récupérer uniquement ces directeurComplexes avec leur utilisateur
+        // a modifier
         $directeurComplexes = DirecteurComplexe::with('utilisateur')
-            ->whereIn('id', $directeurComplexeIds)
+            ->whereDoesntHave('complexe')
+            ->whereHas('utilisateur', function ($query) use ($user) {
+                $query->where('responsable_id', $user->id); // responsable = utilisateur connecté
+            })
             ->get();
 
         $directionRegionales = DirectionRegional::all();

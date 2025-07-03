@@ -33,6 +33,25 @@ class SemaineController extends Controller
         ], 200);
     }
 
+    public function filterByWeek($semaineId)
+    {
+        $currentUser = Auth::user();
+
+        $etablissement = Etablissement::where('directeur_etablissement_id', $currentUser->directeurEtablissement->id)->first();
+
+        $semaine = Semaine::with('anneeScolaire', 'etablissement')
+            ->where('etablissement_id', $etablissement->id)
+            ->where('id', $semaineId)
+            ->get();
+        $seances = $semaine->seances()->with(['module', 'groupe', 'formateur', 'salle'])
+            ->whereHas('semaine', function ($query) use ($etablissement) {
+                $query->where('etablissement_id', $etablissement->id);
+            })->get();
+        return response()->json([
+            'seances' => $seances,
+        ], 200);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

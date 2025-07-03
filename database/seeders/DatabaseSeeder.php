@@ -36,63 +36,57 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        Utilisateur::factory()->create([
-            'nom' => 'mohammed',
-            'email' => 'mohammed@gmail.com',
-            'password' => Hash::make('AQZSEDRF'),
-            'role' => 'DirecteurEtablissement',
-        ]);
+        // Utilisateur::factory()->create([
+        //     'nom' => 'mohammed',
+        //     'email' => 'mohammed@gmail.com',
+        //     'password' => Hash::make('AQZSEDRF'),
+        //     'role' => 'DirecteurEtablissement',
+        // ]);
         Utilisateur::factory()->create([
             'nom' => 'amine',
             'email' => 'amine@gmail.com',
             'password' => Hash::make('AQZSEDRF'),
             'role' => 'DirecteurSuper',
         ]);
-        Utilisateur::factory()->create([
-            'nom' => 'sanaa',
-            'email' => 'sanaa@gmail.com',
-            'password' => Hash::make('AQZSEDRF'),
-            'role' => 'DirecteurRegional',
-        ]);
-        Utilisateur::factory()->create([
-            'nom' => 'outhman',
-            'email' => 'outhman@gmail.com',
-            'password' => Hash::make('AQZSEDRF'),
-            'role' => 'DirecteurComplexe',
-        ]);
-        Utilisateur::factory()->create([
-            'nom' => 'rayan',
-            'email' => 'rayan@gmail.com',
-            'password' => Hash::make('AQZSEDRF'),
-            'role' => 'Formateur',
-        ]);
-        Utilisateur::factory()->create([
-            'nom' => 'salsabil',
-            'email' => 'salsabil@gmail.com',
-            'password' => Hash::make('AQZSEDRF'),
-            'role' => 'Formateur',
-        ]);
-        DirecteurSuper::factory()->create();
-        DirecteurComplexe::factory()->create();
-        DirecteurRegional::factory()->create();
-        DirecteurEtablissement::factory()->create();
-        DirectionRegional::factory()->create();
-        Complexe::factory()->create();
-        Etablissement::factory()->create();
-        Formateur::factory()->create();
-        Secteur::factory()->create();
-        Filiere::factory()->create();
-        Groupe::factory()->create();
-        Module::factory()->create();
-        AnneeScolaire::factory()->create();
-        Salle::factory()->create();
-        Semaine::factory()->create();
-        Ferie::factory()->create();
-        Seance::factory()->create();
-        Affectation::factory()->create();
-        Offrir::factory()->create();
-        SectEfp::factory()->create();
-        SemFer::factory()->create();
-        Suivre::factory()->create();
+        // Utilisateur::factory()->create([
+        //     'nom' => 'sanaa',
+        //     'email' => 'sanaa@gmail.com',
+        //     'password' => Hash::make('AQZSEDRF'),
+        //     'role' => 'DirecteurRegional',
+        // ]);
+        // Utilisateur::factory()->create([
+        //     'nom' => 'outhman',
+        //     'email' => 'outhman@gmail.com',
+        //     'password' => Hash::make('AQZSEDRF'),
+        //     'role' => 'DirecteurComplexe',
+        // ]);
+        // Utilisateur::factory()->create([
+        //     'nom' => 'rayan',
+        //     'email' => 'rayan@gmail.com',
+        //     'password' => Hash::make('AQZSEDRF'),
+        //     'role' => 'Formateur',
+        // ]);
+        // DirecteurSuper::factory()->create();
+        // DirecteurComplexe::factory()->create();
+        // DirecteurRegional::factory()->create();
+        // DirecteurEtablissement::factory()->create();
+        // DirectionRegional::factory()->create();
+        // Complexe::factory()->create();
+        // Etablissement::factory()->create();
+        // Formateur::factory()->create();
+        // Secteur::factory()->create();
+        // Filiere::factory()->create();
+        // Groupe::factory()->create();
+        // Module::factory()->create();
+        // AnneeScolaire::factory()->create();
+        // Salle::factory()->create();
+        // Semaine::factory()->create();
+        // Ferie::factory()->create();
+        // Seance::factory()->create();
+        // Affectation::factory()->create();
+        // Offrir::factory()->create();
+        // SectEfp::factory()->create();
+        // SemFer::factory()->create();
+        // Suivre::factory()->create();
     }
 }

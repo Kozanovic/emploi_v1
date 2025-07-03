@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DirecteurComplexe;
+use App\Models\DirecteurEtablissement;
 use App\Models\User;
+use App\Models\DirecteurRegional;
+use App\Models\DirecteurSuper;
+use App\Models\Formateur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -17,8 +22,7 @@ class UserController extends Controller
     {
         return match ($role) {
             'DirecteurSuper' => ['DirecteurRegional'],
-            'DirecteurRegional' => ['DirecteurComplexe', 'Formateur'],
-            'DirecteurComplexe' => ['DirecteurEtablissement', 'Formateur'],
+            'DirecteurRegional' => ['DirecteurComplexe','DirecteurEtablissement', 'Formateur'],
             'DirecteurEtablissement' => ['Formateur'],
             default => [],
         };
@@ -38,7 +42,9 @@ class UserController extends Controller
             ], 403);
         }
 
-        $utilisateurs = User::whereIn('role', $subordinateRoles)->get();
+        $utilisateurs = User::whereIn('role', $subordinateRoles)
+            ->where('responsable_id', $user->id)
+            ->get();
 
         return response()->json([
             'message' => 'Liste des utilisateurs récupérée avec succès.',
@@ -89,6 +95,7 @@ class UserController extends Controller
             'email' => $validated['email'] ?? $targetUser->email,
             'password' => isset($validated['password']) ? Hash::make($validated['password']) : $targetUser->password,
             'role' => $validated['role'] ?? $targetUser->role,
+            'responsable_id' => $currentUser->id,
         ]);
 
         return response()->json([
@@ -139,7 +146,26 @@ class UserController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
+            'responsable_id' => $currentUser->id,
         ]);
+
+        switch ($utilisateur->role) {
+            case 'DirecteurSuper':
+                DirecteurSuper::create(['utilisateur_id' => $utilisateur->id]);
+                break;
+            case 'DirecteurComplexe':
+                DirecteurComplexe::create(['utilisateur_id' => $utilisateur->id]);
+                break;
+            case 'DirecteurRegional':
+                DirecteurRegional::create(['utilisateur_id' => $utilisateur->id]);
+                break;
+            case 'DirecteurEtablissement':
+                DirecteurEtablissement::create(['utilisateur_id' => $utilisateur->id]);
+                break;
+                // case 'Formateur':
+                //     Formateur::create(['utilisateur_id' => $utilisateur->id]);
+                //     break;
+        }
 
         $token = JWTAuth::fromUser($utilisateur);
 
@@ -162,7 +188,11 @@ class UserController extends Controller
 
         $utilisateur = User::where('email', $validated["email"])->first();
 
-        if (!$utilisateur || !Hash::check($validated['password'], $utilisateur->password)) {
+        if (
+            !$utilisateur ||
+            !is_string($utilisateur->password) ||
+            !Hash::check($validated['password'], $utilisateur->password)
+        ) {
             return response()->json([
                 'message' => 'Email ou mot de passe incorrect.',
             ], 401);

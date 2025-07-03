@@ -4,26 +4,38 @@ namespace App\Http\Controllers;
 
 use App\Models\Offrir;
 use Illuminate\Http\Request;
+use App\Models\Etablissement;
+use App\Models\Filiere;
+use Illuminate\Support\Facades\Auth;
 
 class OffrirController extends Controller
 {
     public function index()
     {
-        $offrirs = Offrir::with(['filiere', 'etablissement'])->get();
+        $user = Auth::user();
+        $directeurId = $user->directeurEtablissement->etablissement->id;
+        $offrirs = Offrir::with(['filiere', 'etablissement'])
+            ->where('etablissement_id', $directeurId)
+            ->get();
+        $filieres = Filiere::whereDoesntHave('etablissements')->with('secteur')->get();
         return response()->json([
             'message' => 'Liste des associations filière/établissement récupérée avec succès',
             'data' => $offrirs,
+            'filieres' => $filieres,
         ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $user = Auth::user();
+        $etablissementId = $user->directeurEtablissement->etablissement->id;
+        $validated = $request->validate([
             'filiere_id' => 'required|exists:filieres,id',
-            'etablissement_id' => 'required|exists:etablissements,id',
         ]);
 
-        $offrir = Offrir::create($request->all());
+        $offrir = Offrir::create(array_merge($validated, [
+            'etablissement_id' => $etablissementId,
+        ]));
 
         return response()->json([
             'message' => 'Association créée avec succès',
@@ -43,13 +55,16 @@ class OffrirController extends Controller
     public function update(Request $request, $id)
     {
         $offrir = Offrir::findOrFail($id);
-
-        $request->validate([
+        $user = Auth::user();
+        $etablissementId = $user->directeurEtablissement->etablissement->id;
+        $valiated = $request->validate([
             'filiere_id' => 'required|exists:filieres,id',
             'etablissement_id' => 'required|exists:etablissements,id',
         ]);
 
-        $offrir->update($request->all());
+        $offrir->update(array_merge($valiated, [
+            'etablissement_id' => $etablissementId,
+        ]));
 
         return response()->json([
             'message' => 'Association mise à jour avec succès',

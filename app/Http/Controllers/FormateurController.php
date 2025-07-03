@@ -27,65 +27,72 @@ class FormateurController extends Controller
             ], 403);
         }
 
-        $formateurs = collect();
-        $utilisateurs = collect();
-        $etablissements = collect();
-        $complexes = collect();
-
         if ($user->role == 'DirecteurRegional') {
-            $directionRegional = $user->directeurRegional;
+            $directionRegional = $user->directeurRegional->directionRegional;
 
-            if ($directionRegional) {
-                $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])
-                    ->where('direction_regional_id', $directionRegional->id)
-                    ->get();
-
-                $utilisateurs = User::whereHas('formateur', function ($query) use ($directionRegional) {
-                    $query->where('direction_regional_id', $directionRegional->id);
-                })->where('role', 'Formateur')->get();
-
-                $etablissements = Etablissement::whereHas('complexe', function ($query) use ($directionRegional) {
-                    $query->where('direction_regional_id', $directionRegional->id);
-                })->get();
-                $complexes = Complexe::where('direction_regional_id', $directionRegional->id)->get();
+            if (!$directionRegional) {
+                return response()->json([
+                    'message' => 'Direction régionale non trouvée.',
+                ], 404);
             }
+
+            $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])
+                ->where('direction_regional_id', $directionRegional->id)
+                ->get();
+
+            $utilisateurs = User::where('role', 'Formateur')
+                ->where('responsable_id', $user->id)
+                ->whereDoesntHave('formateur')
+                ->get();
+
+            $etablissements = Etablissement::whereHas('complexe', function ($query) use ($directionRegional) {
+                $query->where('direction_regional_id', $directionRegional->id);
+            })->get();
+
+            $complexes = Complexe::where('direction_regional_id', $directionRegional->id)->get();
+            $directionRegionales = DirectionRegional::where('id', $directionRegional->id)->get();
+
+            return response()->json([
+                'message' => 'Liste des formateurs (Directeur Régional) récupérée avec succès',
+                'data' => $formateurs,
+                'complexes' => $complexes,
+                'direction_regionales' => $directionRegionales,
+                'etablissements' => $etablissements,
+                'utilisateurs' => $utilisateurs,
+            ]);
         }
 
         if ($user->role == 'DirecteurEtablissement') {
             $directeurEtab = $user->directeurEtablissement;
 
-            if ($directeurEtab) {
-                $etablissement = Etablissement::where('directeur_etablissement_id', $directeurEtab->id)->first();
-
-                if ($etablissement) {
-                    $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])
-                        ->where('etablissement_id', $etablissement->id)
-                        ->get();
-
-                    $utilisateurs = User::whereHas('formateur', function ($query) use ($etablissement) {
-                        $query->where('etablissement_id', $etablissement->id);
-                    })->where('role', 'Formateur')->get();
-
-                    // Si l'établissement a un complexe, on retrouve la direction régionale
-                    $complexe = $etablissement->complexe;
-                    if ($complexe) {
-                        $complexes = collect([$complexe]);
-                        $directionRegionales = collect([$complexe->directionRegional]);
-                    }
-                }
+            if (!$directeurEtab) {
+                return response()->json([
+                    'message' => 'Directeur d\'établissement non trouvé.',
+                ], 404);
             }
+
+            $etablissement = Etablissement::where('directeur_etablissement_id', $directeurEtab->id)->first();
+
+            if (!$etablissement) {
+                return response()->json([
+                    'message' => 'Établissement non trouvé.',
+                ], 404);
+            }
+
+            $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])
+                ->where('etablissement_id', $etablissement->id)
+                ->get();
+
+            return response()->json([
+                'message' => 'Liste des formateurs (Directeur Établissement) récupérée avec succès',
+                'data' => $formateurs,
+            ]);
         }
 
-        $directionRegionales = DirectionRegional::all();
-
+        // Si aucun des rôles ci-dessus
         return response()->json([
-            'message' => 'Liste des formateurs récupérée avec succès',
-            'data' => $formateurs,
-            'complexes' => $complexes,
-            'direction_regionales' => $directionRegionales,
-            'etablissements' => $etablissements,
-            'utilisateurs' => $utilisateurs,
-        ]);
+            'message' => 'Rôle non reconnu.',
+        ], 400);
     }
 
 

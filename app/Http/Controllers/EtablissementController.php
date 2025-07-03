@@ -23,30 +23,28 @@ class EtablissementController extends Controller
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
-        $directeurComplexe = $currentUser->directeurComplexe;
-
-        if (!$directeurComplexe || !$directeurComplexe->complexe) {
-            return response()->json([
-                'message' => "Aucun complexe trouvé pour ce directeur.",
-            ], 404);
+        $directeurRegional = $currentUser->directeurRegional;
+        $directionRegional = $directeurRegional->directionRegional;
+        if (!$directeurRegional) {
+            return response()->json(['message' => 'Directeur régional non trouvé.'], 404);
         }
 
-        $complexe = $directeurComplexe->complexe()
-            ->with([
-                'etablissements.directeurEtablissement.utilisateur'
-            ])
-            ->first();
-
+        $complexes = Complexe::where('direction_regional_id', $directionRegional->id)->get();
         $directeurs = DirecteurEtablissement::with('utilisateur')
-            ->whereHas('etablissement', function ($query) use ($complexe) {
-                $query->where('complexe_id', $complexe->id);
+            ->whereDoesntHave('etablissement')
+            ->whereHas('utilisateur', function ($query) use ($currentUser) {
+                $query->where('responsable_id', $currentUser->id);
             })
             ->get();
-
+        $etablissements = Etablissement::with(['directeurEtablissement', 'complexe','directeurEtablissement.utilisateur'])
+            ->whereHas('complexe', function ($query) use ($directionRegional) {
+                $query->where('direction_regional_id', $directionRegional->id);
+            })
+            ->get();
         return response()->json([
             'message' => 'Données récupérées avec succès.',
-            'complexe' => $complexe,
-            'etablissements' => $complexe->etablissements,
+            'complexes' => $complexes,
+            'etablissements' => $etablissements,
             'directeurs' => $directeurs,
         ]);
     }

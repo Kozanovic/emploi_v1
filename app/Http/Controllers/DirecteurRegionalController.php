@@ -12,7 +12,9 @@ class DirecteurRegionalController extends Controller
      */
     public function index()
     {
-        $directeursRegionaux = DirecteurRegional::with('utilisateur')->get();
+        $directeursRegionaux = DirecteurRegional::with('utilisateur')
+            ->whereDoesntHave('directionRegional')
+            ->get();
         return response()->json([
             'message' => 'Liste des directeurs régionaux récupérée avec succès.',
             'data' => $directeursRegionaux,
@@ -52,7 +54,7 @@ class DirecteurRegionalController extends Controller
     public function show($id)
     {
         $directeurRegional = DirecteurRegional::with('utilisateur')->findOrFail($id);
-        
+
         return response()->json([
             'message' => 'Directeur régional récupéré avec succès.',
             'data' => $directeurRegional,

@@ -9,7 +9,7 @@ class Semaine extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['numero_semaine', 'date_debut', 'date_fin', 'annee_scolaire_id'];
+    protected $fillable = ['numero_semaine', 'date_debut', 'date_fin', 'annee_scolaire_id','etablissement_id'];
 
     public function anneeScolaire()
     {

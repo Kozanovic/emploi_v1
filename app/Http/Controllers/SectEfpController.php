@@ -3,27 +3,81 @@
 namespace App\Http\Controllers;
 
 use App\Models\SectEfp;
+use App\Models\Groupe;
+use App\Models\Secteur;
+use App\Models\Module;
+use App\Models\Etablissement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SectEfpController extends Controller
 {
+    // Dans SectEfpController.php
+    public function groupesParSecteur($secteurId)
+    {
+        $user = Auth::user();
+        $userEtab = $user->directeurEtablissement->etablissement->id;
+
+        // Vérifier que le secteur appartient bien à l'établissement
+        $secteurExists = SectEfp::where('etablissement_id', $userEtab)
+            ->where('secteur_id', $secteurId)
+            ->exists();
+
+        if (!$secteurExists) {
+            return response()->json([
+                'message' => 'Secteur non trouvé pour cet établissement',
+                'data' => []
+            ], 404);
+        }
+
+        // Récupérer les groupes via les filières
+        $groupes = Groupe::with(['filiere'])
+            ->whereHas('filiere', function ($query) use ($secteurId) {
+                $query->where('secteur_id', $secteurId);
+            })
+            ->whereHas('filiere.etablissements', function ($query) use ($userEtab) {
+                $query->where('etablissements.id', $userEtab);
+            })
+            ->where('etablissement_id', $userEtab)
+            ->get();
+
+        // Récupérer tous les modules du secteur
+        $modules = Module::whereHas('filiere', function ($query) use ($secteurId) {
+            $query->where('secteur_id', $secteurId);
+        })->get();
+
+        return response()->json([
+            'message' => 'Groupes et modules récupérés avec succès',
+            'data' => [
+                'groupes' => $groupes,
+                'modules' => $modules
+            ]
+        ]);
+    }
     public function index()
     {
-        $sectEfps = SectEfp::with(['secteur', 'etablissement'])->get();
+        $user = Auth::user();
+        $userEtab = $user->directeurEtablissement->etablissement->id;
+        $sectEfps = SectEfp::with(['secteur', 'etablissement'])->where('etablissement_id', $userEtab)->get();
+        $secteurs = Secteur::whereDoesntHave('etablissements')->get();
         return response()->json([
             'message' => 'Liste des associations secteur/établissement récupérée avec succès',
             'data' => $sectEfps,
+            'secteurs' => $secteurs,
         ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $user = Auth::user();
+        $userEtab = $user->directeurEtablissement->etablissement->id;
+        $validated = $request->validate([
             'secteur_id' => 'required|exists:secteurs,id',
-            'etablissement_id' => 'required|exists:etablissements,id',
         ]);
 
-        $sectEfp = SectEfp::create($request->all());
+        $sectEfp = SectEfp::create(array_merge($validated, [
+            'etablissement_id' => $userEtab,
+        ]));
 
         return response()->json([
             'message' => 'Association créée avec succès',
@@ -43,12 +97,15 @@ class SectEfpController extends Controller
     public function update(Request $request, $id)
     {
         $sectEfp = SectEfp::findOrFail($id);
-        $request->validate([
+        $user = Auth::user();
+        $userEtab = $user->directeurEtablissement->etablissement->id;
+        $validated = $request->validate([
             'secteur_id' => 'required|exists:secteurs,id',
-            'etablissement_id' => 'required|exists:etablissements,id',
         ]);
 
-        $sectEfp->update($request->all());
+        $sectEfp->update(array_merge($validated, [
+            'etablissement_id' => $userEtab,
+        ]));
 
         return response()->json([
             'message' => 'Association mise à jour avec succès',

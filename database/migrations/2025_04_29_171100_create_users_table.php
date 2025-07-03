@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('role', ['DirecteurSuper', 'DirecteurRegional', 'DirecteurComplexe', 'DirecteurEtablissement', 'Formateur',"Stagiaire"]);
+            $table->unsignedBigInteger('responsable_id')->nullable();
+            $table->foreign('responsable_id')->references('id')->on('users')->onDelete('set null');
             $table->timestamps();
         });
     }

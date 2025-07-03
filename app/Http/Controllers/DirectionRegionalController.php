@@ -46,7 +46,7 @@ class DirectionRegionalController extends Controller
             'nom' => 'required|string|max:255',
             'adresse' => 'required|string|max:255',
             'telephone' => 'required|string|max:255',
-            'directeur_regional_id' => 'required|exists:direction_regionals,id'
+            'directeur_regional_id' => 'required|exists:directeur_regionals,id'
         ]);
 
         // Vérification des autorisations
@@ -101,7 +101,7 @@ class DirectionRegionalController extends Controller
             'nom' => 'required|string|max:255',
             'adresse' => 'required|string|max:255',
             'telephone' => 'required|string|max:255',
-            'directeur_regional_id' => 'sometimes|required|exists:direction_regionals,id'
+            'directeur_regional_id' => 'sometimes|required|exists:directeur_regionals,id'
         ]);
 
         $directionRegional->update($request->all());

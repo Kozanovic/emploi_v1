@@ -51,8 +51,9 @@ Route::middleware([AuthJwtMiddlewaer::class])->group(function () {
     Route::get('/utilisateurs/{id}', [UserController::class, 'show']); // ✅
     Route::put('/utilisateurs/{id}', [UserController::class, 'update']); // ✅
     Route::delete('/utilisateurs/{id}', [UserController::class, 'destroy']); // ✅;
-    Route::get('/groupes-par-secteur/{secteurId}', [GroupeController::class, 'getGroupesBySecteur']);// ✅
     Route::post('/logout', [UserController::class, 'logout']); // ✅
+    Route::get('/groupes-par-secteur/{secteurId}', [SectEfpController::class, 'groupesParSecteur']);
+    Route::get('/filter-by-week/{semaineId}', [SemaineController::class, 'filterByWeek']);
 
     Route::apiResources([
         // Tables principales
