@@ -26,8 +26,8 @@ class SeanceController extends Controller
             ->limit(1)
             ->get();
         $seances = Seance::with(['semaine', 'salle', 'module', 'formateur', 'groupe'])->whereHas('semaine', function ($query) use ($etablissement) {
-                $query->where('etablissement_id', $etablissement->id);
-            })
+            $query->where('etablissement_id', $etablissement->id);
+        })
             ->get();
         return response()->json([
             'message' => 'Liste des séances récupérée avec succès.',
@@ -40,11 +40,11 @@ class SeanceController extends Controller
     {
         $validated = $request->validate([
             'date_seance' => 'required|date',
-            'heure_debut' => 'required|date_format:H:i',
-            'heure_fin' => 'required|date_format:H:i|after:heure_debut',
+            'heure_debut' => 'required',
+            'heure_fin' => 'required|after:heure_debut',
             'type' => 'required|in:presentiel,distanciel',
             'semaine_id' => 'required|exists:semaines,id',
-            'salle_id' => 'required|exists:salles,id',
+            'salle_id' => 'nullable|exists:salles,id',
             'module_id' => 'required|exists:modules,id',
             'formateur_id' => 'required|exists:formateurs,id',
             'groupe_id' => 'required|exists:groupes,id',
@@ -57,6 +57,48 @@ class SeanceController extends Controller
                 'message' => "Vous n'avez pas le droit de créer une séance.",
             ], 403);
         }
+
+        $etablissement = $currentUser->directeurEtablissement->etablissement;
+        // Vérification de la disponibilité de la salle
+        $existingFormateur = Seance::where('formateur_id', $validated['formateur_id'])
+            ->where('date_seance', $validated['date_seance'])
+            ->where(function ($query) use ($validated) {
+                // Empêche les chevauchements dans la même plage horaire
+                $query->where(function ($q) use ($validated) {
+                    $q->where('heure_debut', '=', $validated['heure_debut'])
+                        ->where('heure_fin', '=', $validated['heure_fin']);
+                });
+            })->whereHas('semaine', function ($query) use ($etablissement) {
+                $query->where('etablissement_id', $etablissement->id);
+            })
+            ->exists();
+
+        if ($existingFormateur) {
+            return response()->json([
+                'message' => 'Le formateur est déjà occupé à cette date et heure.',
+            ], 422);
+        }
+
+        // Vérification pour la salle
+        $existingSalle = Seance::where('salle_id', $validated['salle_id'])
+            ->where('date_seance', $validated['date_seance'])
+            ->where(function ($query) use ($validated) {
+                $query->where(function ($q) use ($validated) {
+                    $q->where('heure_debut', '=', $validated['heure_debut'])
+                        ->where('heure_fin', '=', $validated['heure_fin']);
+                });
+            })->whereHas('semaine', function ($query) use ($etablissement) {
+                $query->where('etablissement_id', $etablissement->id);
+            })
+            ->exists();
+
+        if ($existingSalle) {
+            return response()->json([
+                'message' => 'La salle est déjà occupée à cette date et heure.',
+            ], 422);
+        }
+
+        // Création de la séance
         $seance = Seance::create($validated);
 
         return response()->json([
@@ -91,7 +133,7 @@ class SeanceController extends Controller
             'heure_fin' => 'sometimes|required|after:heure_debut',
             'type' => 'sometimes|required|in:presentiel,distanciel',
             'semaine_id' => 'sometimes|required|exists:semaines,id',
-            'salle_id' => 'sometimes|required|exists:salles,id',
+            'salle_id' => 'sometimes|nullable|exists:salles,id',
             'module_id' => 'sometimes|required|exists:modules,id',
             'formateur_id' => 'sometimes|required|exists:formateurs,id',
             'groupe_id' => 'sometimes|required|exists:groupes,id',
@@ -104,7 +146,61 @@ class SeanceController extends Controller
                 'message' => "Vous n'avez pas le droit de mettre à jour cette séance.",
             ], 403);
         }
+        $etablissement = $currentUser->directeurEtablissement->etablissement;
 
+        // Vérification de la disponibilité du formateur
+        if (isset($validated['formateur_id']) || isset($validated['date_seance']) || isset($validated['heure_debut']) || isset($validated['heure_fin'])) {
+            $formateurId = $validated['formateur_id'] ?? $seance->formateur_id;
+            $dateSeance = $validated['date_seance'] ?? $seance->date_seance;
+            $heureDebut = $validated['heure_debut'] ?? $seance->heure_debut;
+            $heureFin = $validated['heure_fin'] ?? $seance->heure_fin;
+
+            $existingFormateur = Seance::where('formateur_id', $formateurId)
+                ->where('date_seance', $dateSeance)
+                ->where('id', '!=', $seance->id) // Exclure la séance actuelle
+                ->where(function ($query) use ($heureDebut, $heureFin) {
+                    $query->where(function ($q) use ($heureDebut, $heureFin) {
+                        $q->where('heure_debut', '=', $heureDebut)
+                            ->where('heure_fin', '=', $heureFin);
+                    });
+                })->whereHas('semaine', function ($query) use ($etablissement) {
+                    $query->where('etablissement_id', $etablissement->id);
+                })
+                ->exists();
+
+            if ($existingFormateur) {
+                return response()->json([
+                    'message' => 'Le formateur est déjà occupé à cette date et heure.',
+                ], 422);
+            }
+        }
+
+        // Vérification de la disponibilité de la salle
+        if (isset($validated['salle_id'])) {
+            $salleId = $validated['salle_id'];
+            $dateSeance = $validated['date_seance'] ?? $seance->date_seance;
+            $heureDebut = $validated['heure_debut'] ?? $seance->heure_debut;
+            $heureFin = $validated['heure_fin'] ?? $seance->heure_fin;
+
+            $existingSalle = Seance::where('salle_id', $salleId)
+                ->where('date_seance', $dateSeance)
+                ->where('id', '!=', $seance->id) // Exclure la séance actuelle
+                ->where(function ($query) use ($heureDebut, $heureFin) {
+                    $query->where(function ($q) use ($heureDebut, $heureFin) {
+                        $q->where('heure_debut', '=', $heureDebut)
+                            ->where('heure_fin', '=', $heureFin);
+                    });
+                })->whereHas('semaine', function ($query) use ($etablissement) {
+                    $query->where('etablissement_id', $etablissement->id);
+                })
+                ->exists();
+
+            if ($existingSalle) {
+                return response()->json([
+                    'message' => 'La salle est déjà occupée à cette date et heure.',
+                ], 422);
+            }
+        }
         try {
             $seance->update($validated);
 
