@@ -19,7 +19,13 @@ class SeanceController extends Controller
                 'message' => "Vous n'avez pas le droit de voir la liste des séances.",
             ], 403);
         }
-        $etablissement = $currentUser->directeurEtablissement->etablissement;
+        if ($currentUser->role === 'DirecteurEtablissement') {
+            $etablissement = $currentUser->directeurEtablissement->etablissement;
+        } elseif ($currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance) {
+            $etablissement = $currentUser->formateur->etablissement;
+        } else {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
+        }
         $semaine = Semaine::with('anneeScolaire', 'etablissement')
             ->where('etablissement_id', $etablissement->id)
             ->orderBy('date_fin', 'desc')
@@ -52,13 +58,22 @@ class SeanceController extends Controller
 
         // Vérifier si l'utilisateur a le droit de créer une séance
         $currentUser = Auth::user();
+        $isFormateur = $currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance;
+
         if (!Gate::forUser($currentUser)->allows('create', Seance::class)) {
             return response()->json([
                 'message' => "Vous n'avez pas le droit de créer une séance.",
             ], 403);
         }
 
-        $etablissement = $currentUser->directeurEtablissement->etablissement;
+        // Récupérer l'établissement selon le rôle
+        if ($currentUser->role === 'DirecteurEtablissement') {
+            $etablissement = $currentUser->directeurEtablissement->etablissement;
+        } elseif ($isFormateur) {
+            $etablissement = $currentUser->formateur->etablissement;
+        } else {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
+        }
         // Vérification de la disponibilité de la salle
         $existingFormateur = Seance::where('formateur_id', $validated['formateur_id'])
             ->where('date_seance', $validated['date_seance'])
@@ -141,12 +156,22 @@ class SeanceController extends Controller
 
         // Vérification des permissions
         $currentUser = Auth::user();
-        if (!Gate::forUser($currentUser)->allows('update', $seance)) {
+        $isFormateur = $currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance;
+
+        if (!Gate::forUser($currentUser)->allows('create', Seance::class)) {
             return response()->json([
-                'message' => "Vous n'avez pas le droit de mettre à jour cette séance.",
+                'message' => "Vous n'avez pas le droit de créer une séance.",
             ], 403);
         }
-        $etablissement = $currentUser->directeurEtablissement->etablissement;
+
+        // Récupérer l'établissement selon le rôle
+        if ($currentUser->role === 'DirecteurEtablissement') {
+            $etablissement = $currentUser->directeurEtablissement->etablissement;
+        } elseif ($isFormateur) {
+            $etablissement = $currentUser->formateur->etablissement;
+        } else {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
+        }
 
         // Vérification de la disponibilité du formateur
         if (isset($validated['formateur_id']) || isset($validated['date_seance']) || isset($validated['heure_debut']) || isset($validated['heure_fin'])) {

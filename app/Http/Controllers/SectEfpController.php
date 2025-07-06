@@ -16,7 +16,15 @@ class SectEfpController extends Controller
     public function groupesParSecteur($secteurId)
     {
         $user = Auth::user();
-        $userEtab = $user->directeurEtablissement->etablissement->id;
+        if ($user->role === 'DirecteurEtablissement') {
+            $userEtab = $user->directeurEtablissement->etablissement->id;
+        } elseif ($user->role === 'Formateur' && $user->formateur->peut_gerer_seance) {
+            $userEtab = $user->formateur->etablissement->id;
+        } else {
+            return response()->json([
+                'message' => 'Accès non autorisé',
+            ], 403);
+        }
 
         // Vérifier que le secteur appartient bien à l'établissement
         $secteurExists = SectEfp::where('etablissement_id', $userEtab)
@@ -57,7 +65,16 @@ class SectEfpController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $userEtab = $user->directeurEtablissement->etablissement->id;
+        if ($user->role === 'DirecteurEtablissement') {
+            $userEtab = $user->directeurEtablissement->etablissement->id;
+        } elseif ($user->role === 'Formateur' && $user->formateur->peut_gerer_seance) {
+            $userEtab = $user->formateur->etablissement->id;
+        } else {
+            return response()->json([
+                'message' => 'Accès non autorisé',
+            ], 403);
+        }
+
         $sectEfps = SectEfp::with(['secteur', 'etablissement'])->where('etablissement_id', $userEtab)->get();
         $secteurs = Secteur::whereDoesntHave('etablissements')->get();
         return response()->json([

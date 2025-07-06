@@ -28,10 +28,10 @@ class SallePolicy
     }
     public function view(User $user): bool
     {
-        return $user->estDirecteurEtablissement();
+        return $user->estDirecteurEtablissement() || ($user->estFormateur() && $user->formateur && $user->formateur->peut_gerer_seance);
     }
     public function viewAny(User $user): bool
     {
-        return $user->estDirecteurEtablissement();
+        return $user->estDirecteurEtablissement() || ($user->estFormateur() && $user->formateur && $user->formateur->peut_gerer_seance);
     }
 }

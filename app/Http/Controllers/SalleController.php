@@ -22,8 +22,13 @@ class SalleController extends Controller
         }
 
         // Récupération de l'établissement à partir du directeur
-        $directeur = $currentUser->directeurEtablissement;
-        $etablissement = $directeur ? $directeur->etablissement()->first() : null;
+        if ($currentUser->role === 'DirecteurEtablissement') {
+            $etablissement = $currentUser->directeurEtablissement->etablissement;
+        } elseif ($currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance) {
+            $etablissement = $currentUser->formateur->etablissement;
+        } else {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
+        }
 
         if (!$etablissement) {
             return response()->json([
@@ -31,14 +36,13 @@ class SalleController extends Controller
             ], 404);
         }
 
-        $salles = $etablissement->salles()->with('etablissement')->get();
+        $salles = $etablissement->salles()->with('etablissement')->orderBy('nom')->get();
 
         return response()->json([
             'message' => 'Liste des salles récupérée avec succès.',
             'salles' => $salles,
-            'etablissement' => $etablissement,  
+            'etablissement' => $etablissement,
         ], 200);
-
     }
 
 

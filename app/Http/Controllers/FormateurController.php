@@ -88,6 +88,18 @@ class FormateurController extends Controller
                 'data' => $formateurs,
             ]);
         }
+        if ($user->role === 'Formateur' && $user->formateur->peut_gerer_seance) {
+            
+            $etablissement = Etablissement::where('id', $user->formateur->etablissement->id)->first();
+            $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])
+                ->where('etablissement_id', $etablissement->id)
+                ->get();
+
+            return response()->json([
+                'message' => 'Liste des formateurs (Formateur) récupérée avec succès',
+                'data' => $formateurs,
+            ]);
+        }
 
         // Si aucun des rôles ci-dessus
         return response()->json([
@@ -173,12 +185,9 @@ class FormateurController extends Controller
         } else {
             if ($request->boolean('peut_gerer_seance') === true) {
                 $formateur->update(['peut_gerer_seance' => true]);
-                $formateur->utilisateur->update(['role' => 'DirecteurEtablissement']);
             } else {
                 $formateur->update(['peut_gerer_seance' => false]);
-                $formateur->utilisateur->update(['role' => 'Formateur']);
             }
-            $formateur->update($validated);
         }
 
         return response()->json([

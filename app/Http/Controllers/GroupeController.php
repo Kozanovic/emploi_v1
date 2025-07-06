@@ -31,7 +31,7 @@ class GroupeController extends Controller
                 'message' => "Établissement introuvable.",
             ], 404);
         }
-        $groupes = $etablissement->groupes()->with(['filiere','etablissement'])->get();
+        $groupes = $etablissement->groupes()->with(['filiere', 'etablissement'])->get();
 
         $filieres = $etablissement->filieres()->with('secteur')->get();
 
@@ -60,7 +60,13 @@ class GroupeController extends Controller
             ], 403);
         }
 
-        $etablissement = $currentUser->directeurEtablissement->etablissement;
+        if ($currentUser->role === 'DirecteurEtablissement') {
+            $etablissement = $currentUser->directeurEtablissement->etablissement;
+        } elseif ($currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance) {
+            $etablissement = $currentUser->formateur->etablissement;
+        } else {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
+        }
 
         $filiereOfferte = $etablissement->filieres()->where('filieres.id', $validated['filiere_id'])->exists();
 

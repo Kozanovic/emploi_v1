@@ -20,10 +20,20 @@ class SemaineController extends Controller
                 'message' => "Vous n'avez pas le droit de voir la liste des semaines.",
             ], 403);
         }
-        $etablissement = Etablissement::where('directeur_etablissement_id', $currentUser->directeurEtablissement->id)->first();
+
+        if ($currentUser->role === 'DirecteurEtablissement') {
+            $etablissement = Etablissement::where('directeur_etablissement_id', $currentUser->directeurEtablissement->id)->first();
+        } elseif ($currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance) {
+            $etablissement = Etablissement::where('id', $currentUser->formateur->etablissement->id)->first();
+        } else {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir la liste des semaines pour cet établissement.",
+            ], 403);
+        }
 
         $semaines = Semaine::with('anneeScolaire', 'etablissement')
             ->where('etablissement_id', $etablissement->id)
+            ->orderByDesc('numero_semaine')
             ->get();
         $annees = AnneeScolaire::all();
         return response()->json([
@@ -37,7 +47,15 @@ class SemaineController extends Controller
     {
         $currentUser = Auth::user();
 
-        $etablissement = Etablissement::where('directeur_etablissement_id', $currentUser->directeurEtablissement->id)->first();
+        if ($currentUser->role === 'DirecteurEtablissement') {
+            $etablissement = Etablissement::where('directeur_etablissement_id', $currentUser->directeurEtablissement->id)->first();
+        } elseif ($currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance) {
+            $etablissement = Etablissement::where('id', $currentUser->formateur->etablissement->id)->first();
+        } else {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir la liste des semaines pour cet établissement.",
+            ], 403);
+        }
 
         $semaine = Semaine::with('anneeScolaire', 'etablissement')
             ->where('etablissement_id', $etablissement->id)
@@ -69,7 +87,15 @@ class SemaineController extends Controller
             ], 403);
         }
 
-        $etablissement = Etablissement::where('directeur_etablissement_id', $currentUser->directeurEtablissement->id)->first();
+        if ($currentUser->role === 'DirecteurEtablissement') {
+            $etablissement = Etablissement::where('directeur_etablissement_id', $currentUser->directeurEtablissement->id)->first();
+        } elseif ($currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance) {
+            $etablissement = Etablissement::where('id', $currentUser->formateur->etablissement->id)->first();
+        } else {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir la liste des semaines pour cet établissement.",
+            ], 403);
+        }
 
         if (!$etablissement) {
             return response()->json([
@@ -123,9 +149,16 @@ class SemaineController extends Controller
                 'message' => "Vous n'avez pas le droit de mettre à jour une semaine.",
             ], 403);
         }
-
         // Vérifie que la semaine appartient à l’établissement du directeur
-        $etablissement = Etablissement::where('directeur_etablissement_id', $currentUser->directeurEtablissement->id)->first();
+        if ($currentUser->role === 'DirecteurEtablissement') {
+            $etablissement = Etablissement::where('directeur_etablissement_id', $currentUser->directeurEtablissement->id)->first();
+        } elseif ($currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance) {
+            $etablissement = Etablissement::where('id', $currentUser->formateur->etablissement->id)->first();
+        } else {
+            return response()->json([
+                'message' => "Vous n'avez pas le droit de voir la liste des semaines pour cet établissement.",
+            ], 403);
+        }
 
         if (!$etablissement || $semaine->etablissement_id !== $etablissement->id) {
             return response()->json([
@@ -133,7 +166,9 @@ class SemaineController extends Controller
             ], 403);
         }
 
-        $semaine->update($validated);
+        $semaine->update(array_merge($validated, [
+            'etablissement_id' => $etablissement->id,
+        ]));
 
         return response()->json([
             'message' => 'Semaine mise à jour avec succès.',

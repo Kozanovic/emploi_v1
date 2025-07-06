@@ -27,10 +27,10 @@ class FormateurPolicy
     }
     public function view(User $user)
     {
-        return $user->estDirecteurRegional() || $user->estDirecteurEtablissement();
+        return $user->estDirecteurRegional() || $user->estDirecteurEtablissement() || ($user->estFormateur() && $user->formateur && $user->formateur->peut_gerer_seance);
     }
     public function viewAny(User $user)
     {
-        return $user->estDirecteurRegional() || $user->estDirecteurEtablissement();
+        return $user->estDirecteurRegional() || $user->estDirecteurEtablissement() || ($user->estFormateur() && $user->formateur && $user->formateur->peut_gerer_seance);
     }
 }

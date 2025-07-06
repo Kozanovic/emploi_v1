@@ -19,8 +19,13 @@ class ModuleController extends Controller
             ], 403);
         }
 
-        $etablissement = $currentUser->directeurEtablissement->etablissement;
-
+        if ($currentUser->role === 'DirecteurEtablissement') {
+            $etablissement = $currentUser->directeurEtablissement->etablissement;
+        } elseif ($currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance) {
+            $etablissement = $currentUser->formateur->etablissement;
+        } else {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
+        }
         $modules = Module::whereHas('filiere', function ($query) use ($etablissement) {
             $query->whereHas('etablissements', function ($q) use ($etablissement) {
                 $q->where('etablissements.id', $etablissement->id);
