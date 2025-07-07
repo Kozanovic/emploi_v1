@@ -10,6 +10,19 @@ use Illuminate\Support\Facades\Gate;
 
 class SeanceController extends Controller
 {
+    // Constantes pour les horaires des séances
+    const PREMIERE_SEANCE_DEBUT = '08:30';
+    const PREMIERE_SEANCE_FIN_AVANT_PAUSE = '10:50';
+    const PREMIERE_SEANCE_DEBUT_APRES_PAUSE = '11:10';
+    const PREMIERE_SEANCE_FIN = '13:30';
+
+    const DEUXIEME_SEANCE_DEBUT = '13:30';
+    const DEUXIEME_SEANCE_FIN_AVANT_PAUSE = '15:50';
+    const DEUXIEME_SEANCE_DEBUT_APRES_PAUSE = '16:10';
+    const DEUXIEME_SEANCE_FIN = '18:30';
+
+    const DUREE_PAUSE = 20; // minutes
+
     public function index()
     {
         // Vérifier si l'utilisateur a le droit de voir la liste des séances
@@ -56,6 +69,21 @@ class SeanceController extends Controller
             'groupe_id' => 'required|exists:groupes,id',
         ]);
 
+        // Vérification des horaires selon les règles de l'OFPPM
+        if (!$this->validateSeanceHours($validated['heure_debut'], $validated['heure_fin'])) {
+            return response()->json([
+                'message' => 'Les horaires de la séance ne respectent pas le format imposé par l\'OFPPM.',
+                'valid_hours' => [
+                    'premiere_seance' => [
+                        '08:30-10:50 (pause) 11:10-13:30'
+                    ],
+                    'deuxieme_seance' => [
+                        '13:30-15:50 (pause) 16:10-18:30'
+                    ]
+                ]
+            ], 422);
+        }
+
         // Vérifier si l'utilisateur a le droit de créer une séance
         $currentUser = Auth::user();
         $isFormateur = $currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance;
@@ -74,11 +102,11 @@ class SeanceController extends Controller
         } else {
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }
-        // Vérification de la disponibilité de la salle
+
+        // Vérification de la disponibilité du formateur
         $existingFormateur = Seance::where('formateur_id', $validated['formateur_id'])
             ->where('date_seance', $validated['date_seance'])
             ->where(function ($query) use ($validated) {
-                // Empêche les chevauchements dans la même plage horaire
                 $query->where(function ($q) use ($validated) {
                     $q->where('heure_debut', '=', $validated['heure_debut'])
                         ->where('heure_fin', '=', $validated['heure_fin']);
@@ -94,8 +122,28 @@ class SeanceController extends Controller
             ], 422);
         }
 
-        // Vérification pour la salle
-        $existingSalle = Seance::where('salle_id', $validated['salle_id'])
+        // Vérification pour la salle (si présente)
+        if ($validated['salle_id']) {
+            $existingSalle = Seance::where('salle_id', $validated['salle_id'])
+                ->where('date_seance', $validated['date_seance'])
+                ->where(function ($query) use ($validated) {
+                    $query->where(function ($q) use ($validated) {
+                        $q->where('heure_debut', '=', $validated['heure_debut'])
+                            ->where('heure_fin', '=', $validated['heure_fin']);
+                    });
+                })->whereHas('semaine', function ($query) use ($etablissement) {
+                    $query->where('etablissement_id', $etablissement->id);
+                })
+                ->exists();
+
+            if ($existingSalle) {
+                return response()->json([
+                    'message' => 'La salle est déjà occupée à cette date et heure.',
+                ], 422);
+            }
+        }
+        // Vérification de la disponibilité du groupe
+        $existingGroupe = Seance::where('groupe_id', $validated['groupe_id'])
             ->where('date_seance', $validated['date_seance'])
             ->where(function ($query) use ($validated) {
                 $query->where(function ($q) use ($validated) {
@@ -107,9 +155,9 @@ class SeanceController extends Controller
             })
             ->exists();
 
-        if ($existingSalle) {
+        if ($existingGroupe) {
             return response()->json([
-                'message' => 'La salle est déjà occupée à cette date et heure.',
+                'message' => 'Le groupe a déjà une séance programmée à cette date et heure.',
             ], 422);
         }
 
@@ -154,6 +202,26 @@ class SeanceController extends Controller
             'groupe_id' => 'sometimes|required|exists:groupes,id',
         ]);
 
+        // Vérification des horaires si ils sont modifiés
+        if (isset($validated['heure_debut']) || isset($validated['heure_fin'])) {
+            $heureDebut = $validated['heure_debut'] ?? $seance->heure_debut;
+            $heureFin = $validated['heure_fin'] ?? $seance->heure_fin;
+
+            if (!$this->validateSeanceHours($heureDebut, $heureFin)) {
+                return response()->json([
+                    'message' => 'Les horaires de la séance ne respectent pas le format imposé par l\'OFPPT.',
+                    'valid_hours' => [
+                        'premiere_seance' => [
+                            '08:30-10:50 (pause) 11:10-13:30'
+                        ],
+                        'deuxieme_seance' => [
+                            '13:30-15:50 (pause) 16:10-18:30'
+                        ]
+                    ]
+                ], 422);
+            }
+        }
+
         // Vérification des permissions
         $currentUser = Auth::user();
         $isFormateur = $currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance;
@@ -182,7 +250,7 @@ class SeanceController extends Controller
 
             $existingFormateur = Seance::where('formateur_id', $formateurId)
                 ->where('date_seance', $dateSeance)
-                ->where('id', '!=', $seance->id) // Exclure la séance actuelle
+                ->where('id', '!=', $seance->id)
                 ->where(function ($query) use ($heureDebut, $heureFin) {
                     $query->where(function ($q) use ($heureDebut, $heureFin) {
                         $q->where('heure_debut', '=', $heureDebut)
@@ -209,7 +277,7 @@ class SeanceController extends Controller
 
             $existingSalle = Seance::where('salle_id', $salleId)
                 ->where('date_seance', $dateSeance)
-                ->where('id', '!=', $seance->id) // Exclure la séance actuelle
+                ->where('id', '!=', $seance->id)
                 ->where(function ($query) use ($heureDebut, $heureFin) {
                     $query->where(function ($q) use ($heureDebut, $heureFin) {
                         $q->where('heure_debut', '=', $heureDebut)
@@ -226,6 +294,34 @@ class SeanceController extends Controller
                 ], 422);
             }
         }
+
+        // verification de disponibilité du groupe
+        if (isset($validated['groupe_id']) || isset($validated['date_seance']) || isset($validated['heure_debut']) || isset($validated['heure_fin'])) {
+            $groupeId = $validated['groupe_id'] ?? $seance->groupe_id;
+            $dateSeance = $validated['date_seance'] ?? $seance->date_seance;
+            $heureDebut = $validated['heure_debut'] ?? $seance->heure_debut;
+            $heureFin = $validated['heure_fin'] ?? $seance->heure_fin;
+
+            $existingGroupe = Seance::where('groupe_id', $groupeId)
+                ->where('date_seance', $dateSeance)
+                ->where('id', '!=', $seance->id)
+                ->where(function ($query) use ($heureDebut, $heureFin) {
+                    $query->where(function ($q) use ($heureDebut, $heureFin) {
+                        $q->where('heure_debut', '=', $heureDebut)
+                            ->where('heure_fin', '=', $heureFin);
+                    });
+                })->whereHas('semaine', function ($query) use ($etablissement) {
+                    $query->where('etablissement_id', $etablissement->id);
+                })
+                ->exists();
+
+            if ($existingGroupe) {
+                return response()->json([
+                    'message' => 'Le groupe a déjà une séance programmée à cette date et heure.',
+                ], 422);
+            }
+        }
+
         try {
             $seance->update($validated);
 
@@ -256,5 +352,25 @@ class SeanceController extends Controller
         return response()->json([
             'message' => 'Séance supprimée.'
         ], 200);
+    }
+
+    /**
+     * Valide que les heures de début et fin correspondent aux créneaux OFPPM
+     */
+    private function validateSeanceHours($heureDebut, $heureFin)
+    {
+        // Première séance avant pause
+        $isPremiereAvantPause = ($heureDebut === self::PREMIERE_SEANCE_DEBUT && $heureFin === self::PREMIERE_SEANCE_FIN_AVANT_PAUSE);
+
+        // Première séance après pause
+        $isPremiereApresPause = ($heureDebut === self::PREMIERE_SEANCE_DEBUT_APRES_PAUSE && $heureFin === self::PREMIERE_SEANCE_FIN);
+
+        // Deuxième séance avant pause
+        $isDeuxiemeAvantPause = ($heureDebut === self::DEUXIEME_SEANCE_DEBUT && $heureFin === self::DEUXIEME_SEANCE_FIN_AVANT_PAUSE);
+
+        // Deuxième séance après pause
+        $isDeuxiemeApresPause = ($heureDebut === self::DEUXIEME_SEANCE_DEBUT_APRES_PAUSE && $heureFin === self::DEUXIEME_SEANCE_FIN);
+
+        return $isPremiereAvantPause || $isPremiereApresPause || $isDeuxiemeAvantPause || $isDeuxiemeApresPause;
     }
 }
