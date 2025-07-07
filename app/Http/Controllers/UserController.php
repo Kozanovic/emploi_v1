@@ -22,7 +22,7 @@ class UserController extends Controller
     {
         return match ($role) {
             'DirecteurSuper' => ['DirecteurRegional'],
-            'DirecteurRegional' => ['DirecteurComplexe','DirecteurEtablissement', 'Formateur'],
+            'DirecteurRegional' => ['DirecteurComplexe', 'DirecteurEtablissement', 'Formateur'],
             'DirecteurEtablissement' => ['Formateur'],
             default => [],
         };
@@ -200,11 +200,37 @@ class UserController extends Controller
 
         $token = JWTAuth::fromUser($utilisateur);
 
-        return response()->json([
-            'message' => 'Connexion réussie.',
-            'utilisateur' => $utilisateur,
-            'token' => $token
-        ], 200);
+        if ($utilisateur->role === 'Formateur') {
+            return response()->json([
+                'message' => 'Connexion réussie.',
+                'utilisateur' => $utilisateur->load('formateur'),
+                'token' => $token
+            ], 200);
+        } elseif ($utilisateur->role === 'DirecteurComplexe') {
+            return response()->json([
+                'message' => 'Connexion réussie.',
+                'utilisateur' => $utilisateur->load('directeurComplexe'),
+                'token' => $token
+            ], 200);
+        } elseif ($utilisateur->role === 'DirecteurEtablissement') {
+            return response()->json([
+                'message' => 'Connexion réussie.',
+                'utilisateur' => $utilisateur->load('directeurEtablissement'),
+                'token' => $token
+            ], 200);
+        } elseif ($utilisateur->role === 'DirecteurRegional') {
+            return response()->json([
+                'message' => 'Connexion réussie.',
+                'utilisateur' => $utilisateur->load('directeurRegional'),
+                'token' => $token
+            ], 200);
+        } elseif ($utilisateur->role === 'DirecteurSuper') {
+            return response()->json([
+                'message' => 'Connexion réussie.',
+                'utilisateur' => $utilisateur->load('directeurSuper'),
+                'token' => $token
+            ], 200);
+        }
     }
 
     /**
