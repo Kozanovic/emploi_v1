@@ -25,7 +25,8 @@ use App\Http\Controllers\{
     AffectationController,
     SuivreController,
     SectEfpController,
-    OffrirController
+    OffrirController,
+    StagiaireController
 };
 use App\Http\Middleware\AuthJwtMiddlewaer;
 
@@ -44,6 +45,14 @@ use App\Http\Middleware\AuthJwtMiddlewaer;
 
 
 Route::post('/login', [UserController::class, 'login']);
+Route::get('/getDirectionRegionale', [StagiaireController::class, 'getDirectionRegionale']);
+Route::get('/getComplexe', [StagiaireController::class, 'getComplexe']);
+Route::get('/getEtablissement', [StagiaireController::class, 'getEtablissement']);
+Route::get('/getGroupe', [StagiaireController::class, 'getGroupe']);
+Route::get('/getFiliere/{etabId}', [StagiaireController::class, 'getFiliere']); 
+Route::get('/getSecteurParEtablissement/{etabId}', [StagiaireController::class, 'getSecteurParEtablissement']);
+Route::get('/getSeance/{etabId}/{groupId}', [StagiaireController::class, 'getSeance']);
+Route::get('/stagiaire/export-emploi-du-temps', [StagiaireController::class, 'exportEmploiDuTempsStagiaire']);
 
 Route::middleware([AuthJwtMiddlewaer::class])->group(function () {
     Route::get('/utilisateurs', [UserController::class, 'index']); // ✅
@@ -54,6 +63,9 @@ Route::middleware([AuthJwtMiddlewaer::class])->group(function () {
     Route::post('/logout', [UserController::class, 'logout']); // ✅
     Route::get('/groupes-par-secteur/{secteurId}', [SectEfpController::class, 'groupesParSecteur']);
     Route::get('/filter-by-week/{semaineId}', [SemaineController::class, 'filterByWeek']);
+    Route::get('/export-emploi-du-temps/{selectedSecteur}', [SeanceController::class, 'exportEmploiDuTemps']);
+    Route::get('/mes-seances/semaine/{weekId}', [SeanceController::class, 'getSeancesByWeek']);
+    Route::get('/formateur/export-emploi-du-temps', [SeanceController::class, 'exportEmploiDuTempsFormateur']);
 
     Route::apiResources([
         // Tables principales

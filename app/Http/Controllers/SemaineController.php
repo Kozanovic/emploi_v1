@@ -15,20 +15,24 @@ class SemaineController extends Controller
     {
         // Vérifier si l'utilisateur a le droit de voir la liste des modules
         $currentUser = Auth::user();
-        if (!Gate::forUser($currentUser)->allows('view', Semaine::class)) {
+        if (!Gate::forUser($currentUser)->allows('viewAny', Semaine::class)) {
             return response()->json([
                 'message' => "Vous n'avez pas le droit de voir la liste des semaines.",
             ], 403);
         }
 
+        $etablissement = null;
+
         if ($currentUser->role === 'DirecteurEtablissement') {
             $etablissement = Etablissement::where('directeur_etablissement_id', $currentUser->directeurEtablissement->id)->first();
-        } elseif ($currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance) {
-            $etablissement = Etablissement::where('id', $currentUser->formateur->etablissement->id)->first();
-        } else {
+        } elseif ($currentUser->role === 'Formateur') {
+            $etablissement = $currentUser->formateur->etablissement;
+        }
+
+        if (!$etablissement) {
             return response()->json([
-                'message' => "Vous n'avez pas le droit de voir la liste des semaines pour cet établissement.",
-            ], 403);
+                'message' => "Aucun établissement trouvé.",
+            ], 400);
         }
 
         $semaines = Semaine::with('anneeScolaire', 'etablissement')

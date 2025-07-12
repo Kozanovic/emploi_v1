@@ -32,6 +32,6 @@ class SemainePolicy
     }
     public function viewAny(User $user): bool
     {
-        return $user->estDirecteurEtablissement() || ($user->estFormateur() && $user->formateur && $user->formateur->peut_gerer_seance);
+        return $user->estDirecteurEtablissement() || $user->estFormateur();
     }
 }

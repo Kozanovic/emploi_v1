@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Seance;
 use App\Models\Semaine;
+use App\Models\Ferie;
+use App\Models\SectEfp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SeanceController extends Controller
 {
@@ -23,6 +26,125 @@ class SeanceController extends Controller
 
     const DUREE_PAUSE = 20; // minutes
 
+    public function exportEmploiDuTemps($selectedSecteur)
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'DirecteurEtablissement') {
+            $etablissement = $user->directeurEtablissement->etablissement;
+        } elseif ($user->role === 'Formateur') {
+            $etablissement = $user->formateur->etablissement;
+        } else {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
+        }
+
+        // Récupérer l'ID du secteur depuis la requête
+        $secteurId = $selectedSecteur;
+
+        $semaine = Semaine::with('anneeScolaire', 'etablissement')
+            ->where('etablissement_id', $etablissement->id)
+            ->orderBy('date_fin', 'desc')
+            ->first();
+
+        if (!$semaine) {
+            return response()->json(['message' => 'Aucune semaine trouvée.'], 404);
+        }
+
+        // Requête de base pour les séances
+        $seancesQuery = Seance::with(['module', 'formateur', 'salle', 'groupe'])
+            ->where('semaine_id', $semaine->id)
+            ->orderBy('date_seance')
+            ->whereHas('semaine', function ($query) use ($etablissement) {
+                $query->where('etablissement_id', $etablissement->id);
+            });
+
+        // Si un secteur est spécifié, filtrer par secteur
+        if ($secteurId) {
+            // Vérifier que le secteur appartient bien à l'établissement
+            $secteurExists = SectEfp::where('etablissement_id', $etablissement->id)
+                ->where('secteur_id', $secteurId)
+                ->exists();
+
+            if (!$secteurExists) {
+                return response()->json(['message' => 'Secteur non trouvé pour cet établissement'], 404);
+            }
+
+            // Filtrer les séances par secteur
+            $seancesQuery->whereHas('module.filiere', function ($query) use ($secteurId) {
+                $query->where('secteur_id', $secteurId);
+            });
+        }
+
+        $seances = $seancesQuery->get();
+
+        $pdf = Pdf::loadView('pdf.emploi_du_temps', [
+            'seances' => $seances,
+            'etablissement' => $etablissement,
+            'semaine' => $semaine,
+            'secteurId' => $secteurId // Vous pouvez utiliser cette variable dans votre vue si nécessaire
+        ]);
+
+        return $pdf->download('emploi_du_temps.pdf');
+    }
+    public function exportEmploiDuTempsFormateur(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'Formateur') {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
+        }
+
+        $formateur = $user->formateur;
+
+        $semaineId = $request->input('semaine_id');
+
+        $semaine = Semaine::find($semaineId);
+        if (!$semaine) {
+            return response()->json(['message' => 'Semaine non trouvée'], 404);
+        }
+
+        $seances = Seance::with(['module', 'salle', 'groupe'])
+            ->where('formateur_id', $formateur->id)
+            ->where('semaine_id', $semaine->id)
+            ->orderBy('date_seance')
+            ->orderBy('heure_debut')
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.emploi_du_temps_formateur', [
+            'seances' => $seances,
+            'formateur' => $formateur,
+            'semaine' => $semaine,
+        ]);
+
+        return $pdf->download("emploi_du_temps_formateur_semaine_{$semaine->numero_semaine}.pdf");
+    }
+    public function getSeancesByWeek(Request $request, $weekId)
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'Formateur') {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
+        }
+
+        $semaine = Semaine::with('anneeScolaire')->findOrFail($weekId);
+        $etablissement = $user->formateur->etablissement;
+
+        // Vérifier que la semaine appartient à l'établissement du formateur
+        if ($semaine->etablissement_id !== $etablissement->id) {
+            return response()->json(['message' => 'Accès non autorisé à cette semaine'], 403);
+        }
+
+        $seances = Seance::with(['semaine', 'salle', 'module', 'groupe', 'formateur'])
+            ->where('formateur_id', $user->formateur->id)
+            ->where('semaine_id', $weekId)
+            ->get();
+
+        return response()->json([
+            'message' => 'Séances récupérées avec succès.',
+            'data' => $seances,
+            'semaine' => $semaine,
+        ], 200);
+    }
     public function index()
     {
         // Vérifier si l'utilisateur a le droit de voir la liste des séances
@@ -68,11 +190,24 @@ class SeanceController extends Controller
             'formateur_id' => 'required|exists:formateurs,id',
             'groupe_id' => 'required|exists:groupes,id',
         ]);
+        // Vérification si la date de séance tombe sur un jour férié
+        $isFerie = Ferie::where('date_debut', '<=', $validated['date_seance'])
+            ->where('date_fin', '>', $validated['date_seance'])
+            ->exists();
+
+        if ($isFerie) {
+            $jourFerie = Ferie::where('date_debut', '<=', $validated['date_seance'])
+                ->where('date_fin', '>', $validated['date_seance'])
+                ->first();
+            return response()->json([
+                'message' => 'Impossible de programmer une séance un jour férié. (Motif : ' . $jourFerie->nom . ')',
+            ], 422);
+        }
 
         // Vérification des horaires selon les règles de l'OFPPM
         if (!$this->validateSeanceHours($validated['heure_debut'], $validated['heure_fin'])) {
             return response()->json([
-                'message' => 'Les horaires de la séance ne respectent pas le format imposé par l\'OFPPM.',
+                'message' => 'Les horaires de la séance ne respectent pas le format imposé par l\'OFPPT.',
                 'valid_hours' => [
                     'premiere_seance' => [
                         '08:30-10:50 (pause) 11:10-13:30'
@@ -104,23 +239,27 @@ class SeanceController extends Controller
         }
 
         // Vérification de la disponibilité du formateur
-        $existingFormateur = Seance::where('formateur_id', $validated['formateur_id'])
+        $existingFormateurConflict = Seance::where('formateur_id', $validated['formateur_id'])
             ->where('date_seance', $validated['date_seance'])
             ->where(function ($query) use ($validated) {
-                $query->where(function ($q) use ($validated) {
-                    $q->where('heure_debut', '=', $validated['heure_debut'])
-                        ->where('heure_fin', '=', $validated['heure_fin']);
-                });
-            })->whereHas('semaine', function ($query) use ($etablissement) {
+                $query->where('heure_debut', $validated['heure_debut'])
+                    ->where('heure_fin', $validated['heure_fin']);
+            })
+            ->whereHas('semaine', function ($query) use ($etablissement) {
                 $query->where('etablissement_id', $etablissement->id);
+            })
+            ->where(function ($query) use ($validated) {
+                $query->where('type', 'presentiel') // conflit si au moins une séance est en présentiel
+                    ->orWhere('type', '<>', $validated['type']); // ou s’ils sont de types différents
             })
             ->exists();
 
-        if ($existingFormateur) {
+        if ($existingFormateurConflict) {
             return response()->json([
                 'message' => 'Le formateur est déjà occupé à cette date et heure.',
             ], 422);
         }
+
 
         // Vérification pour la salle (si présente)
         if ($validated['salle_id']) {
@@ -248,20 +387,24 @@ class SeanceController extends Controller
             $heureDebut = $validated['heure_debut'] ?? $seance->heure_debut;
             $heureFin = $validated['heure_fin'] ?? $seance->heure_fin;
 
-            $existingFormateur = Seance::where('formateur_id', $formateurId)
+            $existingFormateurConflict = Seance::where('formateur_id', $formateurId)
                 ->where('date_seance', $dateSeance)
                 ->where('id', '!=', $seance->id)
                 ->where(function ($query) use ($heureDebut, $heureFin) {
-                    $query->where(function ($q) use ($heureDebut, $heureFin) {
-                        $q->where('heure_debut', '=', $heureDebut)
-                            ->where('heure_fin', '=', $heureFin);
-                    });
-                })->whereHas('semaine', function ($query) use ($etablissement) {
+                    $query->where('heure_debut', $heureDebut)
+                        ->where('heure_fin', $heureFin);
+                })
+                ->whereHas('semaine', function ($query) use ($etablissement) {
                     $query->where('etablissement_id', $etablissement->id);
+                })
+                ->where(function ($query) use ($validated, $seance) {
+                    $type = $validated['type'] ?? $seance->type;
+                    $query->where('type', 'presentiel')
+                        ->orWhere('type', '<>', $type);
                 })
                 ->exists();
 
-            if ($existingFormateur) {
+            if ($existingFormateurConflict) {
                 return response()->json([
                     'message' => 'Le formateur est déjà occupé à cette date et heure.',
                 ], 422);
