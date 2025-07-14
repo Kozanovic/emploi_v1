@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Seance;
 use App\Models\Semaine;
 use App\Models\Ferie;
+use App\Models\Groupe;
 use App\Models\SectEfp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,8 +39,8 @@ class SeanceController extends Controller
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }
 
-        // Récupérer l'ID du secteur depuis la requête
         $secteurId = $selectedSecteur;
+        $secteurNom = null;
 
         $semaine = Semaine::with('anneeScolaire', 'etablissement')
             ->where('etablissement_id', $etablissement->id)
@@ -50,38 +51,56 @@ class SeanceController extends Controller
             return response()->json(['message' => 'Aucune semaine trouvée.'], 404);
         }
 
-        // Requête de base pour les séances
-        $seancesQuery = Seance::with(['module', 'formateur', 'salle', 'groupe'])
+        $seancesQuery = Seance::with([
+            'module.filiere',
+            'formateur.utilisateur',
+            'salle',
+            'groupe'
+        ])
             ->where('semaine_id', $semaine->id)
             ->orderBy('date_seance')
             ->whereHas('semaine', function ($query) use ($etablissement) {
                 $query->where('etablissement_id', $etablissement->id);
             });
 
-        // Si un secteur est spécifié, filtrer par secteur
-        if ($secteurId) {
-            // Vérifier que le secteur appartient bien à l'établissement
-            $secteurExists = SectEfp::where('etablissement_id', $etablissement->id)
+        if ($secteurId && $secteurId !== 'all') {
+            $secteur = SectEfp::where('etablissement_id', $etablissement->id)
                 ->where('secteur_id', $secteurId)
-                ->exists();
+                ->with('secteur')
+                ->first();
 
-            if (!$secteurExists) {
+            if (!$secteur) {
                 return response()->json(['message' => 'Secteur non trouvé pour cet établissement'], 404);
             }
+            $secteurNom = $secteur->secteur->nom;
 
-            // Filtrer les séances par secteur
             $seancesQuery->whereHas('module.filiere', function ($query) use ($secteurId) {
                 $query->where('secteur_id', $secteurId);
             });
         }
 
         $seances = $seancesQuery->get();
+        $groupes = Groupe::where('etablissement_id', $etablissement->id)
+            ->whereHas('filiere', function ($query) use ($secteurId) {
+                $query->where('secteur_id', $secteurId);
+            });
 
         $pdf = Pdf::loadView('pdf.emploi_du_temps', [
             'seances' => $seances,
             'etablissement' => $etablissement,
             'semaine' => $semaine,
-            'secteurId' => $secteurId // Vous pouvez utiliser cette variable dans votre vue si nécessaire
+            'secteurId' => $secteurId,
+            'secteurNom' => $secteurNom,
+            'groupes' => $groupes
+        ]);
+
+        $pdf->setPaper('A4', 'landscape');
+        $pdf->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+            'dpi' => 150,
+            'defaultFont' => 'Arial',
+            'scale' => 0.8,
         ]);
 
         return $pdf->download('emploi_du_temps.pdf');
