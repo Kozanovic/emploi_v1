@@ -51,7 +51,8 @@ Route::get('/getEtablissement', [StagiaireController::class, 'getEtablissement']
 Route::get('/getGroupe', [StagiaireController::class, 'getGroupe']);
 Route::get('/getFiliere/{etabId}', [StagiaireController::class, 'getFiliere']); 
 Route::get('/getSecteurParEtablissement/{etabId}', [StagiaireController::class, 'getSecteurParEtablissement']);
-Route::get('/getSeance/{etabId}/{groupId}', [StagiaireController::class, 'getSeance']);
+Route::get('/getSeance/{etabId}/{groupId}/{weekId}', [StagiaireController::class, 'getSeance']);
+Route::get('/semaines/etablissment/{etablissementId}', [StagiaireController::class, 'getWeeks']);
 Route::get('/stagiaire/export-emploi-du-temps', [StagiaireController::class, 'exportEmploiDuTempsStagiaire']);
 
 Route::middleware([AuthJwtMiddlewaer::class])->group(function () {
@@ -63,9 +64,15 @@ Route::middleware([AuthJwtMiddlewaer::class])->group(function () {
     Route::post('/logout', [UserController::class, 'logout']); // ✅
     Route::get('/groupes-par-secteur/{secteurId}', [SectEfpController::class, 'groupesParSecteur']);
     Route::get('/filter-by-week/{semaineId}', [SemaineController::class, 'filterByWeek']);
-    Route::get('/export-emploi-du-temps/{selectedSecteur}', [SeanceController::class, 'exportEmploiDuTemps']);
+    Route::get('/export-emploi-du-temps/{selectedSecteur}/{semaine?}', [SeanceController::class, 'exportEmploiDuTemps']);
     Route::get('/mes-seances/semaine/{weekId}', [SeanceController::class, 'getSeancesByWeek']);
     Route::get('/formateur/export-emploi-du-temps', [SeanceController::class, 'exportEmploiDuTempsFormateur']);
+    Route::get('/formateurs-par-module-et-groupe/{moduleId}/{groupeId}', [AffectationController::class, 'formateursParModuleEtGroupe']);
+    Route::get('/modules-par-groupe/{groupeId}', [AffectationController::class, 'getModuleByGroupe']);
+    Route::get('/seances-par-semaine/{semaineId}', [SeanceController::class, 'getSeancesBySemaine']);
+    Route::get('/getSecteurs', [AffectationController::class, 'getSecteurs']);
+    Route::get('/getFilieresBySecteur/{secteurId}', [AffectationController::class, 'getFilieresBySecteur']);
+    Route::get('/getModulesAndGroupesByFiliere/{filiereId}', [AffectationController::class, 'getModulesAndGroupesByFiliere']);
 
     Route::apiResources([
         // Tables principales

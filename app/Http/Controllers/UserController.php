@@ -7,7 +7,6 @@ use App\Models\DirecteurEtablissement;
 use App\Models\User;
 use App\Models\DirecteurRegional;
 use App\Models\DirecteurSuper;
-use App\Models\Formateur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +21,7 @@ class UserController extends Controller
     {
         return match ($role) {
             'DirecteurSuper' => ['DirecteurRegional'],
-            'DirecteurRegional' => ['DirecteurComplexe', 'DirecteurEtablissement', 'Formateur'],
+            'DirecteurRegional' => ['DirecteurComplexe', 'DirecteurEtablissement'],
             'DirecteurEtablissement' => ['Formateur'],
             default => [],
         };
@@ -162,9 +161,6 @@ class UserController extends Controller
             case 'DirecteurEtablissement':
                 DirecteurEtablissement::create(['utilisateur_id' => $utilisateur->id]);
                 break;
-                // case 'Formateur':
-                //     Formateur::create(['utilisateur_id' => $utilisateur->id]);
-                //     break;
         }
 
         $token = JWTAuth::fromUser($utilisateur);

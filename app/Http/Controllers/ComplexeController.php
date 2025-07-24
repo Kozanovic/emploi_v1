@@ -51,7 +51,7 @@ class ComplexeController extends Controller
             })
             ->get();
 
-        $directionRegionales = DirectionRegional::all();
+        $directionRegionales = DirectionRegional::where('id', $directeurRegional->id)->get();
 
         return response()->json([
             'message' => 'Liste des complexes récupérée avec succès.',
@@ -76,7 +76,7 @@ class ComplexeController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nom' => 'required|string|max:255',
+            'nom' => 'required|string|max:255|unique:complexes,nom',
             'direction_regional_id' => 'required|exists:direction_regionals,id',
             'directeur_complexe_id' => 'required|exists:directeur_complexes,id',
         ]);
@@ -127,7 +127,7 @@ class ComplexeController extends Controller
     {
         $complexe = Complexe::findOrFail($id);
         $request->validate([
-            'nom' => 'required|string|max:255',
+            'nom' => 'required|string|max:255|unique:complexes,nom,' . $complexe->id,
             'directeur_regional_id' => 'required|exists:directeur_regionals,id',
             'directeur_complexe_id' => 'required|exists:directeur_complexes,id',
         ]);

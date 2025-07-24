@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('complexes', function (Blueprint $table) {
             $table->id();
-            $table->string('nom');
+            $table->string('nom')->unique();
             $table->foreignId('direction_regional_id')->constrained('direction_regionals')->onDelete('cascade');
             $table->foreignId('directeur_complexe_id')->constrained('directeur_complexes')->onDelete('cascade');
             $table->timestamps();

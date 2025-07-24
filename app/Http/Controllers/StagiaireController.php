@@ -57,42 +57,62 @@ class StagiaireController extends Controller
             'data' => $filieres,
         ]);
     }
-    public function getSeance($etabId, $groupId)
+    public function getSeance($etabId, $groupId, $weekId)
     {
         $semaine = Semaine::with('anneeScolaire', 'etablissement')
             ->where('etablissement_id', $etabId)
-            ->orderByDesc('date_fin')
-            ->first();
+            ->findOrFail($weekId);
+
+        if (!$semaine) {
+            return response()->json(['message' => 'Semaine non trouvée'], 404);
+        }
+
         $seances = Seance::with(['semaine', 'salle', 'module', 'groupe', 'formateur.utilisateur'])
+            ->whereNull('supprime_par_ferie_id')
             ->where('semaine_id', $semaine->id)
             ->where('groupe_id', $groupId)
             ->get();
+
         return response()->json([
             'data' => $seances,
+            'semaine' => $semaine,
+        ]);
+    }
+    public function getWeeks($etabId)
+    {
+        $semaines = Semaine::with('anneeScolaire', 'etablissement')
+            ->where('etablissement_id', $etabId)
+            ->orderByDesc('numero_semaine')
+            ->get();
+        return response()->json([
+            'data' => $semaines,
         ]);
     }
     public function exportEmploiDuTempsStagiaire(Request $request)
     {
         $groupeId = $request->input('groupe_id');
         $etablissementId = $request->input('etablissement_id');
+        $semaineId = $request->input('semaine_id');
 
-        if (!$groupeId || !$etablissementId) {
+        if (!$groupeId || !$etablissementId || !$semaineId) {
             return response()->json(['message' => 'Paramètres manquants'], 400);
         }
 
-        // Récupérer la semaine actuelle pour l'établissement
+        // Récupérer la semaine spécifique
         $semaine = Semaine::with('anneeScolaire', 'etablissement')
             ->where('etablissement_id', $etablissementId)
-            ->orderByDesc('date_fin')
-            ->first();
+            ->find($semaineId);
 
         if (!$semaine) {
             return response()->json(['message' => 'Semaine non trouvée'], 404);
         }
 
         $seances = Seance::with(['semaine', 'module', 'salle', 'formateur.utilisateur', 'groupe'])
+            ->whereNull('supprime_par_ferie_id')
             ->where('semaine_id', $semaine->id)
             ->where('groupe_id', $groupeId)
+            ->orderBy('date_seance')
+            ->orderBy('heure_debut')
             ->get();
 
         $groupe = Groupe::find($groupeId);

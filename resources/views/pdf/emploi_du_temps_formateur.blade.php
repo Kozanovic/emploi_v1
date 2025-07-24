@@ -78,10 +78,11 @@
     <p>Semaine {{ $semaine->numero_semaine }} :
         du {{ \Carbon\Carbon::parse($semaine->date_debut)->format('d/m/Y') }}
         au {{ \Carbon\Carbon::parse($semaine->date_fin)->format('d/m/Y') }}</p>
+    <p>Année scolaire : {{ $semaine->anneeScolaire->nom }}</p>
 
     @php
         $jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-        $creneaux = ['08:30 - 10:50', '11:10 - 13:30', '13:30 - 15:50', '16:10 - 18:30'];
+        $creneaux = ['08:30 - 11:00', '11:00 - 13:30', '13:30 - 16:00', '16:00 - 18:30'];
 
         $organized = [];
         foreach ($jours as $index => $jour) {

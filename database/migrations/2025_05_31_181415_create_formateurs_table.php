@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('formateurs', function (Blueprint $table) {
             $table->id();
             $table->string('specialite');
-            $table->integer('heures_hebdomadaire');
             $table->boolean('peut_gerer_seance')->default(false);
             $table->foreignId('utilisateur_id')
                 ->constrained('users')

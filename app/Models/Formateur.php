@@ -11,7 +11,6 @@ class Formateur extends Model
 
     protected $fillable = [
         'specialite',
-        'heures_hebdomadaire',
         'peut_gerer_seance',
         'utilisateur_id',
         'etablissement_id',

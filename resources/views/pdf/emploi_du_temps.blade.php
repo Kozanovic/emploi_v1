@@ -52,6 +52,12 @@
             background-color: #de79e0;
         }
 
+        .total-cell {
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+
         .session-details span {
             display: block;
             margin: 0;
@@ -74,7 +80,7 @@
 
     <h2>Emploi du temps</h2>
     <p>Établissement: {{ $etablissement->nom }}</p>
-    <p>Semaine du {{ \Carbon\Carbon::parse($semaine->date_debut)->format('d/m/Y') }} au
+    <p>Semaine {{ $semaine->numero_semaine }} du {{ \Carbon\Carbon::parse($semaine->date_debut)->format('d/m/Y') }} au
         {{ \Carbon\Carbon::parse($semaine->date_fin)->format('d/m/Y') }}</p>
     @if ($secteurId)
         <p>Secteur: {{ $secteurNom }}</p>
@@ -88,6 +94,7 @@
                 @foreach (['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'] as $jour)
                     <th colspan="4">{{ $jour }}</th>
                 @endforeach
+                <th rowspan="3">total</th>
             </tr>
             <tr class="jour-row">
                 @for ($i = 0; $i < 6; $i++)
@@ -97,20 +104,20 @@
             </tr>
             <tr class="horaire-header">
                 @for ($i = 0; $i < 6; $i++)
-                    <th>08:30-10:50</th>
-                    <th>11:10-13:30</th>
-                    <th>13:30-15:50</th>
-                    <th>16:10-18:30</th>
+                    <th>08:30-11:00</th>
+                    <th>11:00-13:30</th>
+                    <th>13:30-16:00</th>
+                    <th>16:00-18:30</th>
                 @endfor
             </tr>
 
             {{-- Données par groupe --}}
             @php
                 $timeSlots = [
-                    '08:30-10:50' => ['08:30:00', '10:50:00'],
-                    '11:10-13:30' => ['11:10:00', '13:30:00'],
-                    '13:30-15:50' => ['13:30:00', '15:50:00'],
-                    '16:10-18:30' => ['16:10:00', '18:30:00'],
+                    '08:30-11:00' => ['08:30:00', '11:00:00'],
+                    '11:00-13:30' => ['11:00:00', '13:30:00'],
+                    '13:30-16:00' => ['13:30:00', '16:00:00'],
+                    '16:00-18:30' => ['16:00:00', '18:30:00'],
                 ];
                 $days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
@@ -143,6 +150,9 @@
             @endphp
 
             @foreach ($allGroupNames as $groupe)
+                @php
+                    $totalHeures = 0;
+                @endphp
                 <tr>
                     <td class="groupe-cell">{{ $groupe }}</td>
                     @foreach ($days as $jour)
@@ -150,6 +160,9 @@
                             <td class="horaire-cell">
                                 @if (isset($groupedSessions[$groupe][$jour][$slotName]))
                                     @foreach ($groupedSessions[$groupe][$jour][$slotName] as $seance)
+                                        @php
+                                            $totalHeures += 2.5;
+                                        @endphp
                                         <div class="session-details">
                                             <span>
                                                 <strong>
@@ -178,8 +191,10 @@
                             </td>
                         @endforeach
                     @endforeach
+                    <td class="horaire-cell total-cell"><strong>{{ intval($totalHeures) }} heure</strong></td>
                 </tr>
             @endforeach
+
         </table>
     </div>
 

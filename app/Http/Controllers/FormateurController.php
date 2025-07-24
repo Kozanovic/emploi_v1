@@ -27,88 +27,34 @@ class FormateurController extends Controller
             ], 403);
         }
 
-        if ($user->role == 'DirecteurRegional') {
-            $directionRegional = $user->directeurRegional->directionRegional;
+        $directeurEtablissement = $user->directeurEtablissement;
 
-            if (!$directionRegional) {
-                return response()->json([
-                    'message' => 'Direction régionale non trouvée.',
-                ], 404);
-            }
+        $directionRegional = $directeurEtablissement->etablissement->complexe->directionRegional;
 
-            $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])
-                ->where('direction_regional_id', $directionRegional->id)
-                ->get();
+        $complexe = $directeurEtablissement->etablissement->complexe;
 
-            $utilisateurs = User::where('role', 'Formateur')
-                ->where('responsable_id', $user->id)
-                ->whereDoesntHave('formateur')
-                ->get();
+        $etablissement = $directeurEtablissement->etablissement;
 
-            $etablissements = Etablissement::whereHas('complexe', function ($query) use ($directionRegional) {
-                $query->where('direction_regional_id', $directionRegional->id);
-            })->get();
-
-            $complexes = Complexe::where('direction_regional_id', $directionRegional->id)->get();
-            $directionRegionales = DirectionRegional::where('id', $directionRegional->id)->get();
-
-            return response()->json([
-                'message' => 'Liste des formateurs (Directeur Régional) récupérée avec succès',
-                'data' => $formateurs,
-                'complexes' => $complexes,
-                'direction_regionales' => $directionRegionales,
-                'etablissements' => $etablissements,
-                'utilisateurs' => $utilisateurs,
-            ]);
-        }
-
-        if ($user->role == 'DirecteurEtablissement') {
-            $directeurEtab = $user->directeurEtablissement;
-
-            if (!$directeurEtab) {
-                return response()->json([
-                    'message' => 'Directeur d\'établissement non trouvé.',
-                ], 404);
-            }
-
-            $etablissement = Etablissement::where('directeur_etablissement_id', $directeurEtab->id)->first();
-
-            if (!$etablissement) {
-                return response()->json([
-                    'message' => 'Établissement non trouvé.',
-                ], 404);
-            }
-
-            $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])
-                ->where('etablissement_id', $etablissement->id)
-                ->get();
-
-            return response()->json([
-                'message' => 'Liste des formateurs (Directeur Établissement) récupérée avec succès',
-                'data' => $formateurs,
-            ]);
-        }
-        if ($user->role === 'Formateur' && $user->formateur->peut_gerer_seance) {
-            
-            $etablissement = Etablissement::where('id', $user->formateur->etablissement->id)->first();
-            $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])
-                ->where('etablissement_id', $etablissement->id)
-                ->get();
-
-            return response()->json([
-                'message' => 'Liste des formateurs (Formateur) récupérée avec succès',
-                'data' => $formateurs,
-            ]);
-        }
-
-        // Si aucun des rôles ci-dessus
+        $utilisateurs = User::where('role', 'Formateur')
+            ->where('responsable_id', $user->id)
+            ->whereDoesntHave('formateur')
+            ->get();
+        
+        $formateurs = Formateur::with(['utilisateur', 'etablissement', 'complexe', 'direction_regional'])
+            ->where('etablissement_id', $etablissement->id)
+            ->where('complexe_id', $complexe->id)
+            ->where('direction_regional_id', $directionRegional->id)
+            ->get();
+        
         return response()->json([
-            'message' => 'Rôle non reconnu.',
-        ], 400);
+            'message' => 'Liste des formateurs récupérée avec succès.',
+            'data' => $formateurs,
+            'utilisateurs' => $utilisateurs,
+            'etablissement' => [$etablissement],
+            'complexe' => [$complexe],
+            'direction_regional' => [$directionRegional],
+        ]);
     }
-
-
-
     /**
      * Crée un nouveau formateur
      */
@@ -117,7 +63,6 @@ class FormateurController extends Controller
         // Validation des champs nécessaires
         $validated = $request->validate([
             'specialite' => 'required|string|max:255',
-            'heures_hebdomadaire' => 'required|integer|min:1',
             'utilisateur_id' => 'required|exists:users,id',
             'etablissement_id' => 'required|exists:etablissements,id',
             'complexe_id' => 'required|exists:complexes,id',
@@ -165,7 +110,6 @@ class FormateurController extends Controller
         $formateur = Formateur::findOrFail($id);
         $validated = $request->validate([
             'specialite' => 'sometimes|required|string|max:255',
-            'heures_hebdomadaire' => 'sometimes|required|integer|min:1',
             'utilisateur_id' => 'sometimes|required|exists:users,id',
             'etablissement_id' => 'sometimes|required|exists:etablissements,id',
             'complexe_id' => 'sometimes|required|exists:complexes,id',
@@ -180,14 +124,11 @@ class FormateurController extends Controller
             ], 403);
         }
 
-        if ($currentUser->role === 'DirecteurRegional') {
-            $formateur->update($validated);
+        $formateur->update($validated);
+        if ($request->boolean('peut_gerer_seance') === true) {
+            $formateur->update(['peut_gerer_seance' => true]);
         } else {
-            if ($request->boolean('peut_gerer_seance') === true) {
-                $formateur->update(['peut_gerer_seance' => true]);
-            } else {
-                $formateur->update(['peut_gerer_seance' => false]);
-            }
+            $formateur->update(['peut_gerer_seance' => false]);
         }
 
         return response()->json([

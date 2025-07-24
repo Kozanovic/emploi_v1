@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('groupes', function (Blueprint $table) {
             $table->id();
             $table->string('nom');
-            $table->integer('annee');
+            $table->enum('annee',['1ére année','2éme année','3éme année']);
             $table->foreignId('filiere_id')->constrained('filieres')->onDelete('cascade');
             $table->foreignId('etablissement_id')->constrained('etablissements')->onDelete('cascade');
             $table->timestamps();

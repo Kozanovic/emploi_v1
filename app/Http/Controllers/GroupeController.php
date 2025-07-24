@@ -31,7 +31,7 @@ class GroupeController extends Controller
                 'message' => "Établissement introuvable.",
             ], 404);
         }
-        $groupes = $etablissement->groupes()->with(['filiere', 'etablissement'])->get();
+        $groupes = $etablissement->groupes()->with(['filiere', 'etablissement'])->orderByDesc('annee')->get();
 
         $filieres = $etablissement->filieres()->with('secteur')->get();
 
@@ -48,7 +48,7 @@ class GroupeController extends Controller
     {
         $validated = $request->validate([
             'nom' => 'required|string',
-            'annee' => 'required|integer',
+            'annee' => 'required|in:1ére année,2éme année,3éme année',
             'filiere_id' => 'required|exists:filieres,id',
             'etablissement_id' => 'required|exists:etablissements,id',
         ]);
@@ -106,7 +106,7 @@ class GroupeController extends Controller
 
         $validated = $request->validate([
             'nom' => 'sometimes|required|string',
-            'annee' => 'sometimes|required|integer',
+            'annee' => 'sometimes|required|in:1ére année,2éme année,3éme année',
             'filiere_id' => 'sometimes|required|exists:filieres,id',
             'etablissement_id' => 'sometimes|required|exists:etablissements,id',
         ]);

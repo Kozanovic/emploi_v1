@@ -15,22 +15,22 @@ class FormateurPolicy
     }
     public function create(User $user)
     {
-        return $user->estDirecteurRegional();
+        return $user->estDirecteurEtablissement();
     }
     public function update(User $user)
     {
-        return $user->estDirecteurRegional() || $user->estDirecteurEtablissement();
+        return $user->estDirecteurEtablissement();
     }
     public function delete(User $user)
     {
-        return $user->estDirecteurRegional();
+        return $user->estDirecteurEtablissement();
     }
     public function view(User $user)
     {
-        return $user->estDirecteurRegional() || $user->estDirecteurEtablissement() || ($user->estFormateur() && $user->formateur && $user->formateur->peut_gerer_seance);
+        return $user->estDirecteurEtablissement() || ($user->estFormateur() && $user->formateur && $user->formateur->peut_gerer_seance);
     }
     public function viewAny(User $user)
     {
-        return $user->estDirecteurRegional() || $user->estDirecteurEtablissement() || ($user->estFormateur() && $user->formateur && $user->formateur->peut_gerer_seance);
+        return $user->estDirecteurEtablissement() || ($user->estFormateur() && $user->formateur && $user->formateur->peut_gerer_seance);
     }
 }

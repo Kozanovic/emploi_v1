@@ -47,6 +47,7 @@ class SectEfpController extends Controller
                 $query->where('etablissements.id', $userEtab);
             })
             ->where('etablissement_id', $userEtab)
+            ->orderBy('annee', 'desc')
             ->get();
 
         // Récupérer tous les modules du secteur

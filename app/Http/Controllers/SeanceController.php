@@ -14,20 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class SeanceController extends Controller
 {
-    // Constantes pour les horaires des séances
-    const PREMIERE_SEANCE_DEBUT = '08:30';
-    const PREMIERE_SEANCE_FIN_AVANT_PAUSE = '10:50';
-    const PREMIERE_SEANCE_DEBUT_APRES_PAUSE = '11:10';
-    const PREMIERE_SEANCE_FIN = '13:30';
-
-    const DEUXIEME_SEANCE_DEBUT = '13:30';
-    const DEUXIEME_SEANCE_FIN_AVANT_PAUSE = '15:50';
-    const DEUXIEME_SEANCE_DEBUT_APRES_PAUSE = '16:10';
-    const DEUXIEME_SEANCE_FIN = '18:30';
-
-    const DUREE_PAUSE = 20; // minutes
-
-    public function exportEmploiDuTemps($selectedSecteur)
+    public function exportEmploiDuTemps($selectedSecteur, $semaineId = null)
     {
         $user = Auth::user();
 
@@ -42,7 +29,10 @@ class SeanceController extends Controller
         $secteurId = $selectedSecteur;
         $secteurNom = null;
 
-        $semaine = Semaine::with('anneeScolaire', 'etablissement')
+        // Récupérer la semaine spécifique ou la dernière semaine si non spécifiée
+        $semaine = $semaineId
+            ? Semaine::with('anneeScolaire', 'etablissement')->find($semaineId)
+            : Semaine::with('anneeScolaire', 'etablissement')
             ->where('etablissement_id', $etablissement->id)
             ->orderBy('date_fin', 'desc')
             ->first();
@@ -57,6 +47,7 @@ class SeanceController extends Controller
             'salle',
             'groupe'
         ])
+            ->whereNull('supprime_par_ferie_id')
             ->where('semaine_id', $semaine->id)
             ->orderBy('date_seance')
             ->whereHas('semaine', function ($query) use ($etablissement) {
@@ -83,7 +74,9 @@ class SeanceController extends Controller
         $groupes = Groupe::where('etablissement_id', $etablissement->id)
             ->whereHas('filiere', function ($query) use ($secteurId) {
                 $query->where('secteur_id', $secteurId);
-            });
+            })
+            ->orderBy('nom', 'desc')
+            ->get();
 
         $pdf = Pdf::loadView('pdf.emploi_du_temps', [
             'seances' => $seances,
@@ -103,7 +96,11 @@ class SeanceController extends Controller
             'scale' => 0.8,
         ]);
 
-        return $pdf->download('emploi_du_temps.pdf');
+        $filename = $secteurNom
+            ? "emploi_du_temps_{$secteurNom}_semaine_{$semaine->numero_semaine}.pdf"
+            : "emploi_du_temps_semaine_{$semaine->numero_semaine}.pdf";
+
+        return $pdf->download($filename);
     }
     public function exportEmploiDuTempsFormateur(Request $request)
     {
@@ -123,6 +120,7 @@ class SeanceController extends Controller
         }
 
         $seances = Seance::with(['module', 'salle', 'groupe'])
+            ->whereNull('supprime_par_ferie_id')
             ->where('formateur_id', $formateur->id)
             ->where('semaine_id', $semaine->id)
             ->orderBy('date_seance')
@@ -154,6 +152,7 @@ class SeanceController extends Controller
         }
 
         $seances = Seance::with(['semaine', 'salle', 'module', 'groupe', 'formateur'])
+            ->whereNull('supprime_par_ferie_id')
             ->where('formateur_id', $user->formateur->id)
             ->where('semaine_id', $weekId)
             ->get();
@@ -164,9 +163,8 @@ class SeanceController extends Controller
             'semaine' => $semaine,
         ], 200);
     }
-    public function index()
+    public function getSeancesBySemaine($semaineId)
     {
-        // Vérifier si l'utilisateur a le droit de voir la liste des séances
         $currentUser = Auth::user();
         if (!Gate::forUser($currentUser)->allows('view', Seance::class)) {
             return response()->json([
@@ -180,22 +178,26 @@ class SeanceController extends Controller
         } else {
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }
-        $semaine = Semaine::with('anneeScolaire', 'etablissement')
-            ->where('etablissement_id', $etablissement->id)
-            ->orderBy('date_fin', 'desc')
-            ->limit(1)
-            ->get();
-        $seances = Seance::with(['semaine', 'salle', 'module', 'formateur', 'groupe'])->whereHas('semaine', function ($query) use ($etablissement) {
-            $query->where('etablissement_id', $etablissement->id);
-        })
+
+        $semaine = Semaine::with('anneeScolaire', 'etablissement')->findOrFail($semaineId);
+        // Vérifier que la semaine appartient à l'établissement de l'utilisateur
+        if ($semaine->etablissement_id !== $etablissement->id) {
+            return response()->json(['message' => 'Accès non autorisé à cette semaine'], 403);
+        }
+
+        $seances = Seance::with(['semaine', 'salle', 'module', 'formateur.utilisateur', 'groupe'])
+            ->whereNull('supprime_par_ferie_id')
+            ->where('semaine_id', $semaineId)
+            ->whereHas('semaine', function ($query) use ($etablissement) {
+                $query->where('etablissement_id', $etablissement->id);
+            })
             ->get();
         return response()->json([
-            'message' => 'Liste des séances récupérée avec succès.',
+            'message' => 'Séances récupérées avec succès.',
             'data' => $seances,
             'semaine' => $semaine,
         ], 200);
     }
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -223,21 +225,6 @@ class SeanceController extends Controller
             ], 422);
         }
 
-        // Vérification des horaires selon les règles de l'OFPPM
-        if (!$this->validateSeanceHours($validated['heure_debut'], $validated['heure_fin'])) {
-            return response()->json([
-                'message' => 'Les horaires de la séance ne respectent pas le format imposé par l\'OFPPT.',
-                'valid_hours' => [
-                    'premiere_seance' => [
-                        '08:30-10:50 (pause) 11:10-13:30'
-                    ],
-                    'deuxieme_seance' => [
-                        '13:30-15:50 (pause) 16:10-18:30'
-                    ]
-                ]
-            ], 422);
-        }
-
         // Vérifier si l'utilisateur a le droit de créer une séance
         $currentUser = Auth::user();
         $isFormateur = $currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance;
@@ -259,6 +246,7 @@ class SeanceController extends Controller
 
         // Vérification de la disponibilité du formateur
         $existingFormateurConflict = Seance::where('formateur_id', $validated['formateur_id'])
+            ->whereNull('supprime_par_ferie_id')
             ->where('date_seance', $validated['date_seance'])
             ->where(function ($query) use ($validated) {
                 $query->where('heure_debut', $validated['heure_debut'])
@@ -283,6 +271,7 @@ class SeanceController extends Controller
         // Vérification pour la salle (si présente)
         if ($validated['salle_id']) {
             $existingSalle = Seance::where('salle_id', $validated['salle_id'])
+                ->whereNull('supprime_par_ferie_id')
                 ->where('date_seance', $validated['date_seance'])
                 ->where(function ($query) use ($validated) {
                     $query->where(function ($q) use ($validated) {
@@ -302,6 +291,7 @@ class SeanceController extends Controller
         }
         // Vérification de la disponibilité du groupe
         $existingGroupe = Seance::where('groupe_id', $validated['groupe_id'])
+            ->whereNull('supprime_par_ferie_id')
             ->where('date_seance', $validated['date_seance'])
             ->where(function ($query) use ($validated) {
                 $query->where(function ($q) use ($validated) {
@@ -327,7 +317,6 @@ class SeanceController extends Controller
             'data' => $seance
         ], 201);
     }
-
     public function show($id)
     {
         $seance = Seance::with(['semaine', 'salle', 'module', 'formateur', 'groupe'])->findOrFail($id);
@@ -360,26 +349,6 @@ class SeanceController extends Controller
             'groupe_id' => 'sometimes|required|exists:groupes,id',
         ]);
 
-        // Vérification des horaires si ils sont modifiés
-        if (isset($validated['heure_debut']) || isset($validated['heure_fin'])) {
-            $heureDebut = $validated['heure_debut'] ?? $seance->heure_debut;
-            $heureFin = $validated['heure_fin'] ?? $seance->heure_fin;
-
-            if (!$this->validateSeanceHours($heureDebut, $heureFin)) {
-                return response()->json([
-                    'message' => 'Les horaires de la séance ne respectent pas le format imposé par l\'OFPPT.',
-                    'valid_hours' => [
-                        'premiere_seance' => [
-                            '08:30-10:50 (pause) 11:10-13:30'
-                        ],
-                        'deuxieme_seance' => [
-                            '13:30-15:50 (pause) 16:10-18:30'
-                        ]
-                    ]
-                ], 422);
-            }
-        }
-
         // Vérification des permissions
         $currentUser = Auth::user();
         $isFormateur = $currentUser->role === 'Formateur' && $currentUser->formateur->peut_gerer_seance;
@@ -407,6 +376,7 @@ class SeanceController extends Controller
             $heureFin = $validated['heure_fin'] ?? $seance->heure_fin;
 
             $existingFormateurConflict = Seance::where('formateur_id', $formateurId)
+                ->whereNull('supprime_par_ferie_id')
                 ->where('date_seance', $dateSeance)
                 ->where('id', '!=', $seance->id)
                 ->where(function ($query) use ($heureDebut, $heureFin) {
@@ -438,6 +408,7 @@ class SeanceController extends Controller
             $heureFin = $validated['heure_fin'] ?? $seance->heure_fin;
 
             $existingSalle = Seance::where('salle_id', $salleId)
+                ->whereNull('supprime_par_ferie_id')
                 ->where('date_seance', $dateSeance)
                 ->where('id', '!=', $seance->id)
                 ->where(function ($query) use ($heureDebut, $heureFin) {
@@ -465,6 +436,7 @@ class SeanceController extends Controller
             $heureFin = $validated['heure_fin'] ?? $seance->heure_fin;
 
             $existingGroupe = Seance::where('groupe_id', $groupeId)
+                ->whereNull('supprime_par_ferie_id')
                 ->where('date_seance', $dateSeance)
                 ->where('id', '!=', $seance->id)
                 ->where(function ($query) use ($heureDebut, $heureFin) {
@@ -514,25 +486,5 @@ class SeanceController extends Controller
         return response()->json([
             'message' => 'Séance supprimée.'
         ], 200);
-    }
-
-    /**
-     * Valide que les heures de début et fin correspondent aux créneaux OFPPM
-     */
-    private function validateSeanceHours($heureDebut, $heureFin)
-    {
-        // Première séance avant pause
-        $isPremiereAvantPause = ($heureDebut === self::PREMIERE_SEANCE_DEBUT && $heureFin === self::PREMIERE_SEANCE_FIN_AVANT_PAUSE);
-
-        // Première séance après pause
-        $isPremiereApresPause = ($heureDebut === self::PREMIERE_SEANCE_DEBUT_APRES_PAUSE && $heureFin === self::PREMIERE_SEANCE_FIN);
-
-        // Deuxième séance avant pause
-        $isDeuxiemeAvantPause = ($heureDebut === self::DEUXIEME_SEANCE_DEBUT && $heureFin === self::DEUXIEME_SEANCE_FIN_AVANT_PAUSE);
-
-        // Deuxième séance après pause
-        $isDeuxiemeApresPause = ($heureDebut === self::DEUXIEME_SEANCE_DEBUT_APRES_PAUSE && $heureFin === self::DEUXIEME_SEANCE_FIN);
-
-        return $isPremiereAvantPause || $isPremiereApresPause || $isDeuxiemeAvantPause || $isDeuxiemeApresPause;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ferie;
+use App\Models\Seance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -41,6 +42,10 @@ class FerieController extends Controller
         }
 
         $ferie = Ferie::create($validated);
+
+        Seance::where('date_seance', '>=', $validated['date_debut'])
+            ->where('date_seance', '<', $validated['date_fin'])
+            ->update(['supprime_par_ferie_id' => $ferie->id]);
 
         return response()->json([
             'message' => 'Jour férié créé avec succès.',
@@ -82,6 +87,20 @@ class FerieController extends Controller
 
         $ferie->update($validated);
 
+        $newStart = $ferie->date_debut;
+        $newEnd = $ferie->date_fin;
+
+        Seance::where('supprime_par_ferie_id', $ferie->id)
+            ->where(function ($query) use ($newStart, $newEnd) {
+                $query->where('date_seance', '<', $newStart)
+                    ->orWhere('date_seance', '>', $newEnd);
+            })
+            ->update(['supprime_par_ferie_id' => null]);
+
+        Seance::where('date_seance', '>=', $validated['date_debut'])
+            ->where('date_seance', '<', $validated['date_fin'])
+            ->update(['supprime_par_ferie_id' => $ferie->id]);
+
         return response()->json([
             'message' => 'Jour férié mis à jour.',
             'data' => $ferie
@@ -98,6 +117,8 @@ class FerieController extends Controller
                 'message' => "Vous n'avez pas le droit de supprimer ce jour férié.",
             ], 403);
         }
+        Seance::where('supprime_par_ferie_id', $ferie->id)
+            ->update(['supprime_par_ferie_id' => null]);
         $ferie->delete();
 
         return response()->json([
