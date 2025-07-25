@@ -31,6 +31,6 @@ class FeriePolicy
 
     public function view(User $user): bool
     {
-        return $user->estDirecteurSuper();
+        return $user->estDirecteurSuper() || $user->estDirecteurEtablissement() || ($user->estFormateur() && $user->estFormateur->peut_gerer_seance);
     }
 }
