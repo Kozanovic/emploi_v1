@@ -191,7 +191,15 @@
                             </td>
                         @endforeach
                     @endforeach
-                    <td class="horaire-cell total-cell"><strong>{{ intval($totalHeures) }} heure</strong></td>
+                    <td class="horaire-cell total-cell">
+                        <strong>
+                            @if (fmod($totalHeures, 1) == 0)
+                                {{ intval($totalHeures) }} heure{{ intval($totalHeures) > 1 ? 's' : '' }}
+                            @else
+                                {{ number_format($totalHeures, 1, ',', '') }} heure{{ $totalHeures > 1 ? 's' : '' }}
+                            @endif
+                        </strong>
+                    </td>
                 </tr>
             @endforeach
 
